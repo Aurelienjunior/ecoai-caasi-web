@@ -1,4 +1,3 @@
-
 import { useAuth } from "@/contexts/AuthContext";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
 import BottomNav from "@/components/layout/BottomNav";
 import DashboardHeader from "@/components/layout/DashboardHeader";
+import SignOutButton from "@/components/auth/SignOutButton";
 
 const Profile = () => {
   const { profile, user } = useAuth();
@@ -109,6 +109,8 @@ const Profile = () => {
                 {loading ? "Updating..." : "Update Profile"}
               </Button>
             </form>
+            <div className="border-t my-6" />
+            <SignOutButton />
           </CardContent>
         </Card>
       </main>
@@ -118,4 +120,3 @@ const Profile = () => {
 };
 
 export default Profile;
-

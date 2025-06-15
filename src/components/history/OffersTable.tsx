@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card } from "@/components/ui/card";
-import { LoaderCircle, UserCheck, Trash2 } from "lucide-react";
+import { LoaderCircle, UserCheck, Trash2, RefreshCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -18,12 +18,14 @@ import {
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useUserOffers, Offer } from "@/hooks/useUserOffers";
+import OffersTableSkeleton from "./OffersTableSkeleton";
 
 const OffersTable = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [offerToDelete, setOfferToDelete] = useState<Offer | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
   const {
     offers: currentOffers,
@@ -31,6 +33,12 @@ const OffersTable = () => {
     removeOfferLocally,
     invalidate,
   } = useUserOffers(user?.id);
+
+  // Retry logic for loading offers
+  const handleRetry = () => {
+    setFetchError(null);
+    invalidate();
+  };
 
   const handleDelete = async (offer: Offer) => {
     setDeleting(true);
@@ -47,6 +55,16 @@ const OffersTable = () => {
         title: "Error",
         description: "Failed to retract offer. Please try again.",
         variant: "destructive",
+        action: (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handleDelete(offer)}
+            aria-label="Retry retract offer"
+          >
+            <RefreshCcw className="mr-1" size={16} /> Retry
+          </Button>
+        ),
       });
     } else {
       toast({
@@ -58,12 +76,30 @@ const OffersTable = () => {
     }
   };
 
+  React.useEffect(() => {
+    if (!isLoading && !currentOffers && user) {
+      setFetchError("Failed to load your offers. Please try again.");
+    }
+    if (currentOffers) {
+      setFetchError(null);
+    }
+  }, [isLoading, currentOffers, user]);
+
   if (!user) return null;
 
   if (isLoading) {
+    return <OffersTableSkeleton />;
+  }
+
+  if (fetchError) {
     return (
-      <div className="flex items-center gap-2 text-muted-foreground">
-        <LoaderCircle className="animate-spin" /> Loading offers...
+      <div className="flex flex-col items-center gap-3 text-red-700 bg-red-50 border border-red-100 rounded-lg p-4">
+        <div className="flex items-center gap-2 text-sm">
+          <LoaderCircle className="animate-spin" size={20} aria-label="Loading error" /> {fetchError}
+        </div>
+        <Button variant="outline" onClick={handleRetry} aria-label="Retry loading offers">
+          <RefreshCcw className="mr-2" size={16} /> Retry
+        </Button>
       </div>
     );
   }
@@ -103,7 +139,7 @@ const OffersTable = () => {
                   {offer.status === "pending" ? (
                     <span className="text-xs text-muted-foreground">Waiting for agent</span>
                   ) : (
-                    <span className="flex items-center gap-1 text-green-700"><UserCheck size={16} /> Assigned</span>
+                    <span className="flex items-center gap-1 text-green-700"><UserCheck size={16} aria-label="Assigned" /> Assigned</span>
                   )}
                 </TableCell>
                 <TableCell>
@@ -116,6 +152,7 @@ const OffersTable = () => {
                           className="px-3 py-1 h-auto flex gap-1"
                           onClick={() => setOfferToDelete(offer)}
                           disabled={deleting}
+                          aria-label="Retract offer"
                         >
                           <Trash2 size={16} /> Retract
                         </Button>
@@ -135,6 +172,7 @@ const OffersTable = () => {
                             variant="destructive"
                             onClick={() => handleDelete(offer)}
                             disabled={deleting}
+                            aria-label="Confirm retract offer"
                           >
                             {deleting ? "Deleting..." : "Yes, retract"}
                           </Button>
@@ -142,7 +180,7 @@ const OffersTable = () => {
                       </DialogContent>
                     </Dialog>
                   ) : (
-                    <span className="text-xs text-muted-foreground">No action</span>
+                    <span className="text-xs text-muted-foreground" aria-label="No action available">No action</span>
                   )}
                 </TableCell>
               </TableRow>
@@ -155,3 +193,4 @@ const OffersTable = () => {
 };
 
 export default OffersTable;
+

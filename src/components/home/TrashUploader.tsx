@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { UploadCloud, LoaderCircle, Package, CircleDollarSign, CheckCircle, XCircle } from 'lucide-react';
+import { UploadCloud, LoaderCircle, Package, CircleDollarSign, CheckCircle, XCircle, RefreshCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '@/components/ui/dialog';
@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { analyzeTrashImage, loadImage, AnalysisResult } from '@/lib/imageAnalysis';
+import AnalysisResultSkeleton from "./AnalysisResultSkeleton";
 
 const TrashUploader = () => {
   const [file, setFile] = React.useState<File | null>(null);
@@ -16,6 +17,7 @@ const TrashUploader = () => {
   const [isAnalyzing, setIsAnalyzing] = React.useState(false);
   const [analysisResult, setAnalysisResult] = React.useState<AnalysisResult | null>(null);
   const [isPickupDialogOpen, setIsPickupDialogOpen] = React.useState(false);
+  const [analysisError, setAnalysisError] = React.useState<string | null>(null);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -26,6 +28,7 @@ const TrashUploader = () => {
       setFile(selectedFile);
       setPreviewUrl(URL.createObjectURL(selectedFile));
       setAnalysisResult(null);
+      setAnalysisError(null);
       setIsAnalyzing(true);
       
       try {
@@ -34,14 +37,30 @@ const TrashUploader = () => {
         const result = await analyzeTrashImage(imageElement);
         setAnalysisResult(result);
         if (result.error) {
-          toast.error("Analysis Failed", { description: result.error });
+          toast.error("Analysis Failed", {
+            description: result.error,
+            action: (
+              <Button size="sm" variant="outline" onClick={handleRetryAnalysis} aria-label="Retry analysis">
+                <RefreshCcw size={16} className="mr-1" /> Retry
+              </Button>
+            ),
+          });
+          setAnalysisError(result.error);
         } else {
           toast.success("Analysis Complete!");
         }
       } catch (error) {
         console.error("Error loading or analyzing image:", error);
         const errMessage = "Could not load the image file.";
-        toast.error("Analysis Failed", { description: errMessage });
+        toast.error("Analysis Failed", {
+          description: errMessage,
+          action: (
+            <Button size="sm" variant="outline" onClick={handleRetryAnalysis} aria-label="Retry analysis">
+              <RefreshCcw size={16} className="mr-1" /> Retry
+            </Button>
+          ),
+        });
+        setAnalysisError(errMessage);
         setAnalysisResult({ volume: 'N/A', price: 'N/A', wasteType: 'N/A', error: errMessage, detectedItems: [] });
       } finally {
         setIsAnalyzing(false);
@@ -53,11 +72,57 @@ const TrashUploader = () => {
     fileInputRef.current?.click();
   };
 
+  const handleRetryAnalysis = () => {
+    // Re-analyze the same file
+    if (file) {
+      setIsAnalyzing(true);
+      setAnalysisError(null);
+      setAnalysisResult(null);
+      setTimeout(async () => {
+        try {
+          toast.info("Retrying AI analysis...", { description: "The model will be downloaded if needed." });
+          const imageElement = await loadImage(file);
+          const result = await analyzeTrashImage(imageElement);
+          setAnalysisResult(result);
+          if (result.error) {
+            toast.error("Analysis Failed", {
+              description: result.error,
+              action: (
+                <Button size="sm" variant="outline" onClick={handleRetryAnalysis} aria-label="Retry analysis">
+                  <RefreshCcw size={16} className="mr-1" /> Retry
+                </Button>
+              ),
+            });
+            setAnalysisError(result.error);
+          } else {
+            toast.success("Analysis Complete!");
+          }
+        } catch (error) {
+          console.error("Error retry loading/analyzing image:", error);
+          const errMessage = "Could not load the image file.";
+          toast.error("Analysis Failed", {
+            description: errMessage,
+            action: (
+              <Button size="sm" variant="outline" onClick={handleRetryAnalysis} aria-label="Retry analysis">
+                <RefreshCcw size={16} className="mr-1" /> Retry
+              </Button>
+            ),
+          });
+          setAnalysisError(errMessage);
+          setAnalysisResult({ volume: 'N/A', price: 'N/A', wasteType: 'N/A', error: errMessage, detectedItems: [] });
+        } finally {
+          setIsAnalyzing(false);
+        }
+      }, 300);
+    }
+  };
+
   const handleReset = () => {
     setFile(null);
     setPreviewUrl(null);
     setAnalysisResult(null);
     setIsAnalyzing(false);
+    setAnalysisError(null);
     if(fileInputRef.current) {
         fileInputRef.current.value = "";
     }
@@ -105,7 +170,7 @@ const TrashUploader = () => {
                   role="button"
                   aria-label="Upload a photo"
                 >
-                  <UploadCloud className="w-14 h-14 text-muted-foreground" />
+                  <UploadCloud className="w-14 h-14 text-muted-foreground" aria-label="Upload icon" />
                   <p className="mt-4 text-lg font-semibold">Click to upload a photo</p>
                   <p className="text-sm text-muted-foreground">PNG, JPG, or WEBP</p>
                   <input
@@ -114,29 +179,26 @@ const TrashUploader = () => {
                     onChange={handleFileChange}
                     className="hidden"
                     accept="image/png, image/jpeg, image/webp"
+                    aria-label="Choose image file"
                   />
                 </div>
               ) : (
                 <div className="grid md:grid-cols-2 gap-6">
                   <div className="space-y-4">
                     <img src={previewUrl} alt="Trash preview" className="rounded-lg object-cover w-full aspect-square border border-green-100 shadow" />
-                    <Button variant="outline" className="w-full" onClick={handleReset}>Upload another photo</Button>
+                    <Button variant="outline" className="w-full" onClick={handleReset} aria-label="Upload another photo">Upload another photo</Button>
                   </div>
                   <div className="flex flex-col justify-center space-y-4">
                     {isAnalyzing ? (
-                      <div className="flex flex-col items-center justify-center h-full space-y-4">
-                        <LoaderCircle className="w-10 h-10 animate-spin text-primary" />
-                        <p className="font-semibold text-lg">Analyzing image...</p>
-                        <p className="text-muted-foreground text-sm">This may take a moment.</p>
-                      </div>
+                      <AnalysisResultSkeleton />
                     ) : analysisResult && (
                       <Card>
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
                                 {analysisResult.error ? (
-                                  <XCircle className="text-destructive" />
+                                  <XCircle className="text-destructive" aria-label="Analysis failed" />
                                 ) : (
-                                  <CheckCircle className="text-green-500" />
+                                  <CheckCircle className="text-green-500" aria-label="Analysis complete" />
                                 )}
                                 {analysisResult.error ? 'Analysis Failed' : 'Analysis Complete'}
                             </CardTitle>
@@ -147,14 +209,14 @@ const TrashUploader = () => {
                         {!analysisResult.error && (
                           <CardContent className="space-y-4">
                             <div className="flex items-center gap-4">
-                              <Package className="w-8 h-8 text-primary" />
+                              <Package className="w-8 h-8 text-primary" aria-label="Estimated volume" />
                               <div>
                                 <p className="text-sm text-muted-foreground">Estimated Volume</p>
                                 <p className="font-semibold">{analysisResult.volume}</p>
                               </div>
                             </div>
                             <div className="flex items-center gap-4">
-                              <CircleDollarSign className="w-8 h-8 text-primary" />
+                              <CircleDollarSign className="w-8 h-8 text-primary" aria-label="Pickup price" />
                               <div>
                                 <p className="text-sm text-muted-foreground">Pickup Price</p>
                                 <p className="font-semibold text-xl">{analysisResult.price}</p>
@@ -162,7 +224,7 @@ const TrashUploader = () => {
                             </div>
                             <Dialog open={isPickupDialogOpen} onOpenChange={setIsPickupDialogOpen}>
                               <DialogTrigger asChild>
-                                <Button className="w-full" onClick={handleScheduleClick}>Schedule Pickup</Button>
+                                <Button className="w-full" onClick={handleScheduleClick} aria-label="Schedule Pickup">Schedule Pickup</Button>
                               </DialogTrigger>
                               <DialogContent className="sm:max-w-[425px]">
                                 <DialogHeader>
@@ -176,6 +238,13 @@ const TrashUploader = () => {
                                 />
                               </DialogContent>
                             </Dialog>
+                          </CardContent>
+                        )}
+                        {analysisResult.error && (
+                          <CardContent className="mt-2">
+                            <Button variant="outline" onClick={handleRetryAnalysis} aria-label="Retry analysis">
+                              <RefreshCcw size={18} className="mr-2" /> Retry
+                            </Button>
                           </CardContent>
                         )}
                       </Card>
@@ -192,3 +261,4 @@ const TrashUploader = () => {
 };
 
 export default TrashUploader;
+

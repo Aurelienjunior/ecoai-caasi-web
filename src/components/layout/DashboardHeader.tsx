@@ -2,9 +2,11 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { Bell } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useNavigate } from 'react-router-dom';
 
 const DashboardHeader = () => {
     const { profile } = useAuth();
+    const navigate = useNavigate();
 
     const getInitials = (name: string) => {
         if (!name) return "U";
@@ -24,12 +26,21 @@ const DashboardHeader = () => {
                 </div>
                 <div className="flex items-center gap-4">
                     <Bell className="w-6 h-6 text-gray-600" />
-                    <Avatar>
-                        <AvatarImage src={profile?.avatar_url || ''} alt={profile?.first_name || 'User'} />
-                        <AvatarFallback>
-                            {getInitials(profile?.first_name || '')}
-                        </AvatarFallback>
-                    </Avatar>
+                    {/* Make avatar clickable to go to profile */}
+                    <button
+                        className="focus:outline-none"
+                        onClick={() => navigate('/profile')}
+                        aria-label="Go to profile"
+                        style={{ background: "none", border: "none", padding: 0, margin: 0 }}
+                        tabIndex={0}
+                    >
+                        <Avatar>
+                            <AvatarImage src={profile?.avatar_url || ''} alt={profile?.first_name || 'User'} />
+                            <AvatarFallback>
+                                {getInitials(profile?.first_name || '')}
+                            </AvatarFallback>
+                        </Avatar>
+                    </button>
                 </div>
             </div>
         </header>
@@ -37,3 +48,4 @@ const DashboardHeader = () => {
 };
 
 export default DashboardHeader;
+

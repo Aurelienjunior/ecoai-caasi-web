@@ -14,15 +14,8 @@ const LoggedInHome = () => {
     <div className="flex flex-col min-h-screen bg-gray-50 pb-24">
       <DashboardHeader />
       <main className="flex-1 p-4 space-y-6">
-        {/* Profile link at the top */}
-        <div className="flex justify-end">
-          <Link
-            to="/profile"
-            className="inline-block px-4 py-2 text-sm font-semibold text-primary bg-primary/10 rounded hover:bg-primary/20 transition-colors"
-          >
-            View / Edit Profile
-          </Link>
-        </div>
+        {/* Removed Profile link at the top */}
+
         <div className="bg-primary text-primary-foreground p-4 rounded-xl flex items-center justify-between shadow-lg">
           <div>
             <p className="font-bold text-lg">Dispose your trash responsibly</p>

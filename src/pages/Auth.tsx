@@ -2,12 +2,11 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
+import LoginForm from '@/components/auth/LoginForm';
+import SignUpForm from '@/components/auth/SignUpForm';
 
 const Auth = () => {
   const [email, setEmail] = useState('');
@@ -75,69 +74,6 @@ const Auth = () => {
     setAvailabilityRange('');
   };
 
-  const renderLoginForm = () => (
-    <form onSubmit={handleLogin}>
-      <div className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="login-email">Email</Label>
-          <Input
-            id="login-email"
-            type="email"
-            placeholder="m@example.com"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="login-password">Password</Label>
-          <Input
-            id="login-password"
-            type="password"
-            required
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-        </div>
-        <Button type="submit" className="w-full" disabled={loading}>
-          {loading ? 'Logging in...' : 'Login'}
-        </Button>
-      </div>
-    </form>
-  );
-
-  const renderSignUpForm = () => (
-    <form onSubmit={handleSignUp} className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="signup-email">Email</Label>
-        <Input id="signup-email" type="email" placeholder="m@example.com" required value={email} onChange={(e) => setEmail(e.target.value)} />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="signup-password">Password</Label>
-        <Input id="signup-password" type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} />
-      </div>
-       <div className="space-y-2">
-        <Label htmlFor="signup-firstname">First Name</Label>
-        <Input id="signup-firstname" required value={firstName} onChange={(e) => setFirstName(e.target.value)} />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="signup-city">City</Label>
-        <Input id="signup-city" required value={city} onChange={(e) => setCity(e.target.value)} />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="signup-area">Area</Label>
-        <Input id="signup-area" required value={area} onChange={(e) => setArea(e.target.value)} />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="signup-availability">Availability Range (Optional)</Label>
-        <Input id="signup-availability" placeholder="e.g., Weekdays 9am-5pm" value={availabilityRange} onChange={(e) => setAvailabilityRange(e.target.value)} />
-      </div>
-      <Button type="submit" className="w-full" disabled={loading || !firstName || !city || !area}>
-        {loading ? 'Creating Account...' : 'Create Account'}
-      </Button>
-    </form>
-  );
-
   return (
     <div className="flex items-center justify-center min-h-screen bg-secondary">
       <div className="container mx-auto max-w-sm p-4">
@@ -153,7 +89,14 @@ const Auth = () => {
                 <CardDescription>Enter your email and password to log in.</CardDescription>
               </CardHeader>
               <CardContent>
-                {renderLoginForm()}
+                <LoginForm
+                  handleLogin={handleLogin}
+                  loading={loading}
+                  email={email}
+                  setEmail={setEmail}
+                  password={password}
+                  setPassword={setPassword}
+                />
               </CardContent>
             </Card>
           </TabsContent>
@@ -164,7 +107,22 @@ const Auth = () => {
                 <CardDescription>Create an account to start scheduling pickups.</CardDescription>
               </CardHeader>
               <CardContent>
-                {renderSignUpForm()}
+                <SignUpForm
+                  handleSignUp={handleSignUp}
+                  loading={loading}
+                  email={email}
+                  setEmail={setEmail}
+                  password={password}
+                  setPassword={setPassword}
+                  firstName={firstName}
+                  setFirstName={setFirstName}
+                  city={city}
+                  setCity={setCity}
+                  area={area}
+                  setArea={setArea}
+                  availabilityRange={availabilityRange}
+                  setAvailabilityRange={setAvailabilityRange}
+                />
               </CardContent>
             </Card>
           </TabsContent>

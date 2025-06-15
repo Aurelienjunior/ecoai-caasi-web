@@ -1,5 +1,4 @@
-
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -53,8 +52,13 @@ const OffersTable = () => {
     queryKey: ["user-offers", user?.id],
     queryFn: () => fetchOffers(user!.id),
     enabled: !!user,
-    onSuccess: (data) => setLocalOffers(data),
   });
+
+  useEffect(() => {
+    if (offers) {
+      setLocalOffers(offers);
+    }
+  }, [offers]);
 
   const removeOfferLocally = (id: string) => {
     setLocalOffers((prev) => prev ? prev.filter((offer) => offer.id !== id) : null);

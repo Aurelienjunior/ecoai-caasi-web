@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import BottomNav from '@/components/layout/BottomNav';
@@ -41,7 +40,7 @@ const Snap = () => {
         console.error("Error loading or analyzing image:", error);
         const errMessage = "Could not load the image file.";
         toast.error("Analysis Failed", { description: errMessage });
-        setAnalysisResult({ volume: 'N/A', price: 'N/A', error: errMessage, detectedItems: [] });
+        setAnalysisResult({ volume: 'N/A', price: 'N/A', wasteType: 'N/A', error: errMessage, detectedItems: [] });
       } finally {
         setIsAnalyzing(false);
       }

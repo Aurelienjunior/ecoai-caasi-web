@@ -9,6 +9,7 @@ env.useBrowserCache = true;
 export interface AnalysisResult {
   volume: string;
   price: string;
+  wasteType: string;
   detectedItems?: string[];
   error?: string;
 }
@@ -34,7 +35,7 @@ export const analyzeTrashImage = async (imageElement: HTMLImageElement): Promise
     const segmentationResult = await segmenter(imageElement.src);
 
     if (!Array.isArray(segmentationResult)) {
-      return { volume: 'N/A', price: 'N/A', error: 'Analysis failed: Invalid result format.', detectedItems: [] };
+      return { volume: 'N/A', price: 'N/A', wasteType: 'N/A', error: 'Analysis failed: Invalid result format.', detectedItems: [] };
     }
     
     // Define labels that we consider as trash items
@@ -50,17 +51,17 @@ export const analyzeTrashImage = async (imageElement: HTMLImageElement): Promise
 
     // Determine volume and price based on the number of detected items
     if (itemCount === 0) {
-      return { volume: 'Small (no items detected)', price: 'XAF 250', detectedItems: [] };
+      return { volume: 'Small', price: 'XAF 250', wasteType: 'General', detectedItems: [] };
     } else if (itemCount <= 2) {
-      return { volume: 'Medium (approx. 1-2 items)', price: 'XAF 500', detectedItems: detectedItemLabels };
+      return { volume: 'Medium', price: 'XAF 500', wasteType: 'General', detectedItems: detectedItemLabels };
     } else if (itemCount <= 5) {
-      return { volume: 'Large (approx. 3-5 items)', price: 'XAF 1000', detectedItems: detectedItemLabels };
+      return { volume: 'Large', price: 'XAF 1000', wasteType: 'General', detectedItems: detectedItemLabels };
     } else {
-      return { volume: 'Extra Large (5+ items)', price: 'XAF 1500', detectedItems: detectedItemLabels };
+      return { volume: 'Extra Large', price: 'XAF 1500', wasteType: 'General', detectedItems: detectedItemLabels };
     }
 
   } catch (error) {
     console.error('Error during image analysis:', error);
-    return { volume: 'N/A', price: 'N/A', error: 'Could not analyze image. The model may have failed to load.', detectedItems: [] };
+    return { volume: 'N/A', price: 'N/A', wasteType: 'N/A', error: 'Could not analyze image. The model may have failed to load.', detectedItems: [] };
   }
 };

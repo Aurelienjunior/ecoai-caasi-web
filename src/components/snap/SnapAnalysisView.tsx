@@ -1,8 +1,7 @@
-
 import React from 'react';
-import { CheckCircle, LoaderCircle, Package, CircleDollarSign, XCircle } from 'lucide-react';
+import { LoaderCircle, XCircle, Info, Check, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '@/components/ui/dialog';
 import SchedulePickupForm from '@/components/home/SchedulePickupForm';
 import { AnalysisResult } from '@/lib/imageAnalysis';
@@ -31,7 +30,7 @@ const SnapAnalysisView: React.FC<SnapAnalysisViewProps> = ({
 }) => {
   return (
     <div className="space-y-4">
-      <img src={previewUrl} alt="Trash preview" className="rounded-lg object-cover w-full aspect-square" />
+      <img src={previewUrl} alt="Trash preview" className="rounded-2xl object-cover w-full aspect-[4/3]" />
       
       <div className="flex flex-col justify-center space-y-4">
         {isAnalyzing ? (
@@ -41,70 +40,81 @@ const SnapAnalysisView: React.FC<SnapAnalysisViewProps> = ({
             <p className="text-muted-foreground text-sm">This may take a moment.</p>
           </div>
         ) : analysisResult && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                {analysisResult.error ? (
-                  <XCircle className="text-destructive" />
-                ) : (
-                  <CheckCircle className="text-green-500" />
-                )}
-                {analysisResult.error ? 'Analysis Failed' : 'Analysis Complete'}
-              </CardTitle>
-              <CardDescription>
-                {analysisResult.error ? analysisResult.error : 'Based on our AI assessment.'}
-              </CardDescription>
-            </CardHeader>
-            {!analysisResult.error && (
-              <CardContent className="space-y-4">
-                {analysisResult.detectedItems && analysisResult.detectedItems.length > 0 && (
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground mb-2">Detected Items</p>
-                    <div className="flex flex-wrap gap-2">
-                      {analysisResult.detectedItems.map((item, index) => (
-                        <Badge key={`${item}-${index}`} variant="secondary" className="capitalize">{item}</Badge>
-                      ))}
+          <>
+            {analysisResult.error ? (
+              <Card className="border-destructive">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <XCircle className="text-destructive" />
+                    Analysis Failed
+                  </CardTitle>
+                  <CardDescription>{analysisResult.error}</CardDescription>
+                </CardHeader>
+              </Card>
+            ) : (
+              <div className="border-2 border-green-400 rounded-2xl p-4 space-y-4 bg-white shadow-sm">
+                <div className="flex justify-between items-center">
+                    <h3 className="font-semibold text-lg text-gray-800">Analysis Result</h3>
+                    <Badge variant="secondary" className="bg-green-100 text-green-700 font-semibold border-transparent">Completed</Badge>
+                </div>
+
+                <div className="space-y-3 text-base">
+                    <div className="flex justify-between">
+                        <span className="text-muted-foreground">Estimated volume</span>
+                        <span className="font-medium text-gray-800 text-right">{analysisResult.volume}</span>
                     </div>
-                  </div>
-                )}
-                <div className="flex items-center gap-4">
-                  <Package className="w-8 h-8 text-primary" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">Estimated Volume</p>
-                    <p className="font-semibold">{analysisResult.volume}</p>
-                  </div>
+                    <div className="flex justify-between">
+                        <span className="text-muted-foreground">Waste Type</span>
+                        <span className="font-medium text-gray-800 text-right">{analysisResult.wasteType}</span>
+                    </div>
                 </div>
-                <div className="flex items-center gap-4">
-                  <CircleDollarSign className="w-8 h-8 text-primary" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">Pickup Price</p>
-                    <p className="font-semibold text-xl">{analysisResult.price}</p>
-                  </div>
+
+                <hr className="border-gray-200" />
+
+                <div className="flex justify-between items-baseline">
+                    <span className="text-lg font-semibold text-gray-800">Price Estimate</span>
+                    <span className="text-2xl font-bold text-green-600">{analysisResult.price}</span>
                 </div>
-                <Dialog open={isPickupDialogOpen} onOpenChange={setIsPickupDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button className="w-full" onClick={onScheduleClick}>Schedule Pickup</Button>
-                  </DialogTrigger>
-                  <DialogContent className="sm:max-w-[425px]">
-                    <DialogHeader>
-                      <DialogTitle>Schedule Pickup</DialogTitle>
-                      <DialogDescription>
-                        Enter your details below. An agent will be assigned shortly.
-                      </DialogDescription>
-                    </DialogHeader>
-                    <SchedulePickupForm 
-                      onSchedule={onScheduleSuccess} 
-                      volume={analysisResult.volume!}
-                      price={analysisResult.price!}
-                    />
-                  </DialogContent>
-                </Dialog>
-              </CardContent>
+
+                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <Info className="w-3.5 h-3.5" />
+                    <span>Price based on waste type and volume</span>
+                </div>
+              </div>
             )}
-          </Card>
+            
+            <div className="grid grid-cols-2 gap-4 pt-2">
+                <Button variant="outline" className="border-destructive text-destructive hover:bg-destructive/10 hover:text-destructive flex items-center justify-center py-6 text-base h-auto" onClick={onReset}>
+                    <X className="mr-2 h-5 w-5" /> Decline
+                </Button>
+                <Dialog open={isPickupDialogOpen} onOpenChange={setIsPickupDialogOpen}>
+                    <DialogTrigger asChild>
+                        <Button 
+                            className="bg-green-600 hover:bg-green-700 text-white flex items-center justify-center py-6 text-base h-auto" 
+                            onClick={onScheduleClick}
+                            disabled={!!analysisResult.error}
+                        >
+                            <Check className="mr-2 h-5 w-5" /> Accept
+                        </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-[425px]">
+                        <DialogHeader>
+                          <DialogTitle>Schedule Pickup</DialogTitle>
+                          <DialogDescription>
+                            Enter your details below. An agent will be assigned shortly.
+                          </DialogDescription>
+                        </DialogHeader>
+                        <SchedulePickupForm 
+                          onSchedule={onScheduleSuccess} 
+                          volume={analysisResult.volume!}
+                          price={analysisResult.price!}
+                        />
+                    </DialogContent>
+                </Dialog>
+            </div>
+          </>
         )}
       </div>
-       <Button variant="outline" className="w-full" onClick={onReset}>Take another photo</Button>
     </div>
   );
 };

@@ -36,15 +36,18 @@ const Auth = () => {
 
   const handleSendOtp = async (e: React.FormEvent, type: 'login' | 'signup') => {
     e.preventDefault();
-    if (!validatePhoneNumber(phone)) {
-      toast.error('Invalid Cameroon phone number. Format: +2376XXXXXXXX');
+    const cleanPhone = phone.trim();
+
+    if (!validatePhoneNumber(cleanPhone)) {
+      toast.error('Invalid phone number. Use +2376... format or the test number +13334445555.');
       return;
     }
     setLoading(true);
     setIsSignUp(type === 'signup');
+    setPhone(cleanPhone);
 
     const { error } = await supabase.auth.signInWithOtp({
-      phone,
+      phone: cleanPhone,
     });
 
     if (error) {

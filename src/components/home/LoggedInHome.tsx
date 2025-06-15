@@ -1,9 +1,10 @@
+
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import BottomNav from '@/components/layout/BottomNav';
 import { Card, CardContent } from '@/components/ui/card';
 import { Book, Calendar as CalendarIcon, Bot } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import PickupStatusCard from './PickupStatusCard';
+// Removed: import PickupStatusCard from './PickupStatusCard';
 import DashboardSummaryCard from './DashboardSummaryCard';
 import OfferSummaryCard from "./OfferSummaryCard";
 import { useAuth } from "@/contexts/AuthContext";
@@ -26,7 +27,7 @@ const LoggedInHome = () => {
         
         {user && <OfferSummaryCard userId={user.id} />}
 
-        <PickupStatusCard />
+        {/* Removed <PickupStatusCard /> */}
         <DashboardSummaryCard />
 
         <div className="grid grid-cols-2 gap-4">
@@ -65,3 +66,4 @@ const LoggedInHome = () => {
 };
 
 export default LoggedInHome;
+

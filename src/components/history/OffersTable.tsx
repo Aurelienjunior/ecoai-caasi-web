@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -140,10 +139,9 @@ const OffersTable = ({ userId }: { userId: string }) => {
             <Button
               variant="destructive"
               onClick={handleDeleteConfirm}
-              loading={isSaving}
               disabled={isSaving}
             >
-              Yes, Retract
+              {isSaving ? "Retracting..." : "Yes, Retract"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -197,8 +195,11 @@ const OffersTable = ({ userId }: { userId: string }) => {
                           variant="destructive"
                           aria-label="Retract Offer"
                           onClick={() => handleRetract(offer)}
+                          disabled={isSaving}
                         >
-                          <Trash2 size={16} className="mr-1" /> Retract
+                          {isSaving ? "Retracting..." : <>
+                            <Trash2 size={16} className="mr-1" /> Retract
+                          </>}
                         </Button>
                       </>
                     )}
@@ -247,8 +248,11 @@ const OffersTable = ({ userId }: { userId: string }) => {
                         variant="destructive"
                         aria-label="Retract Offer"
                         onClick={() => handleRetract(offer)}
+                        disabled={isSaving}
                       >
-                        <Trash2 size={16} className="mr-1" /> Retract
+                        {isSaving ? "Retracting..." : <>
+                          <Trash2 size={16} className="mr-1" /> Retract
+                        </>}
                       </Button>
                     </>
                   )}

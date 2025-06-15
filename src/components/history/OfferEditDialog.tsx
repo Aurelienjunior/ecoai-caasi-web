@@ -76,21 +76,21 @@ export function OfferEditDialog({ open, onOpenChange, offer, onSave, isSaving }:
           </div>
           <div>
             <label htmlFor="notes" className="block text-sm font-medium mb-1">Notes</label>
-            <Input
-              as="textarea"
+            <textarea
               id="notes"
               name="notes"
               value={form.notes ?? ""}
               onChange={handleChange}
               disabled={isSaving}
+              className="flex h-20 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
             />
           </div>
           <DialogFooter>
             <Button type="button" variant="secondary" onClick={() => onOpenChange(false)} disabled={isSaving}>
               Cancel
             </Button>
-            <Button type="submit" loading={isSaving} disabled={isSaving}>
-              Save
+            <Button type="submit" disabled={isSaving}>
+              {isSaving ? "Saving..." : "Save"}
             </Button>
           </DialogFooter>
         </form>

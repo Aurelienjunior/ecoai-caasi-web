@@ -1,18 +1,11 @@
 
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import BottomNav from '@/components/layout/BottomNav';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Book, Calendar as CalendarIcon, Bot, Clock, Bell, Plus } from 'lucide-react';
-import { Switch } from '@/components/ui/switch';
+import { Card, CardContent } from '@/components/ui/card';
+import { Book, Calendar as CalendarIcon, Bot } from 'lucide-react';
 import { Link } from 'react-router-dom';
-
-const DayButton = ({ day, date, selected }: { day: string; date: number; selected?: boolean }) => (
-    <div className={`flex flex-col items-center p-2 rounded-lg w-12 text-center shrink-0 ${selected ? 'bg-primary text-primary-foreground' : 'bg-gray-200'}`}>
-        <span className="text-xs">{day}</span>
-        <span className="font-bold">{date}</span>
-    </div>
-)
+import PickupStatusCard from './PickupStatusCard';
+import DashboardSummaryCard from './DashboardSummaryCard';
 
 const LoggedInHome = () => {
   return (
@@ -28,38 +21,8 @@ const LoggedInHome = () => {
           <Bot className="w-16 h-16" />
         </div>
         
-        <Card className="shadow-lg">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <div className="flex items-center gap-2">
-                    <CardTitle className="text-lg">Next Pickup</CardTitle>
-                    <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
-                </div>
-                <Button variant="ghost" size="icon"><Plus className="w-5 h-5"/></Button>
-            </CardHeader>
-            <CardContent>
-                <p className="text-muted-foreground text-sm mb-4">No Pickup yet</p>
-                <div className="flex space-x-2 overflow-x-auto pb-2 -mx-2 px-2">
-                    <DayButton day="Sun" date={23} selected />
-                    <DayButton day="Mon" date={24} />
-                    <DayButton day="Tue" date={25} />
-                    <DayButton day="Wed" date={27} />
-                    <DayButton day="Thu" date={28} />
-                    <DayButton day="Fri" date={29} />
-                    <DayButton day="Sat" date={31} />
-                </div>
-                <div className="mt-4 border-t pt-4 flex justify-between items-center">
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                        <Clock className="w-5 h-5" />
-                        <span>10 am</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                        <Bell className="w-5 h-5" />
-                        <span>1hr Reminder</span>
-                        <Switch id="reminder-switch" />
-                    </div>
-                </div>
-            </CardContent>
-        </Card>
+        <PickupStatusCard />
+        <DashboardSummaryCard />
 
         <div className="grid grid-cols-2 gap-4">
             <Link to="/snap" className="block h-full">

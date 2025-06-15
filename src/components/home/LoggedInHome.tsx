@@ -1,4 +1,3 @@
-
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import BottomNav from '@/components/layout/BottomNav';
 import { Card, CardContent } from '@/components/ui/card';
@@ -6,8 +5,12 @@ import { Book, Calendar as CalendarIcon, Bot } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import PickupStatusCard from './PickupStatusCard';
 import DashboardSummaryCard from './DashboardSummaryCard';
+import OfferSummaryCard from "./OfferSummaryCard";
+import { useAuth } from "@/contexts/AuthContext";
 
 const LoggedInHome = () => {
+  const { user } = useAuth();
+
   return (
     <div className="flex flex-col min-h-screen bg-gray-50 pb-24">
       <DashboardHeader />
@@ -21,6 +24,8 @@ const LoggedInHome = () => {
           <Bot className="w-16 h-16" />
         </div>
         
+        {user && <OfferSummaryCard userId={user.id} />}
+
         <PickupStatusCard />
         <DashboardSummaryCard />
 

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { ArrowLeft, CheckCircle, LoaderCircle, Package, CircleDollarSign, XCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -10,6 +9,7 @@ import SchedulePickupForm from '@/components/home/SchedulePickupForm';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { analyzeTrashImage, loadImage, AnalysisResult } from '@/lib/imageAnalysis';
+import { Badge } from '@/components/ui/badge';
 
 const SnapHeader = () => {
     const navigate = useNavigate();
@@ -55,7 +55,7 @@ const Snap = () => {
         console.error("Error loading or analyzing image:", error);
         const errMessage = "Could not load the image file.";
         toast.error("Analysis Failed", { description: errMessage });
-        setAnalysisResult({ volume: 'N/A', price: 'N/A', error: errMessage });
+        setAnalysisResult({ volume: 'N/A', price: 'N/A', error: errMessage, detectedItems: [] });
       } finally {
         setIsAnalyzing(false);
       }
@@ -168,6 +168,16 @@ const Snap = () => {
                         </CardHeader>
                         {!analysisResult.error && (
                           <CardContent className="space-y-4">
+                            {analysisResult.detectedItems && analysisResult.detectedItems.length > 0 && (
+                              <div>
+                                <p className="text-sm font-medium text-muted-foreground mb-2">Detected Items</p>
+                                <div className="flex flex-wrap gap-2">
+                                  {analysisResult.detectedItems.map((item, index) => (
+                                    <Badge key={`${item}-${index}`} variant="secondary" className="capitalize">{item}</Badge>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
                             <div className="flex items-center gap-4">
                               <Package className="w-8 h-8 text-primary" />
                               <div>

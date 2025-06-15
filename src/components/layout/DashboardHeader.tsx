@@ -1,8 +1,8 @@
-
 import { useAuth } from '@/contexts/AuthContext';
 import { Bell } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useNavigate } from 'react-router-dom';
+import LogoutButton from "@/components/auth/LogoutButton";
 
 const DashboardHeader = () => {
     const { profile } = useAuth();
@@ -26,6 +26,7 @@ const DashboardHeader = () => {
                 </div>
                 <div className="flex items-center gap-4">
                     <Bell className="w-6 h-6 text-gray-600" />
+                    <LogoutButton />
                     {/* Make avatar clickable to go to profile */}
                     <button
                         className="focus:outline-none"
@@ -48,4 +49,3 @@ const DashboardHeader = () => {
 };
 
 export default DashboardHeader;
-

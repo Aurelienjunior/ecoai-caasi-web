@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Book, Calendar as CalendarIcon, Bot, Clock, Bell, Plus } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
+import { Link } from 'react-router-dom';
 
 const DayButton = ({ day, date, selected }: { day: string; date: number; selected?: boolean }) => (
     <div className={`flex flex-col items-center p-2 rounded-lg w-12 text-center shrink-0 ${selected ? 'bg-primary text-primary-foreground' : 'bg-gray-200'}`}>
@@ -61,13 +62,15 @@ const LoggedInHome = () => {
         </Card>
 
         <div className="grid grid-cols-2 gap-4">
-            <Card className="p-4 flex flex-col items-center justify-center text-center shadow-lg cursor-pointer hover:bg-gray-100 transition-colors">
-                <div className="bg-primary/10 p-3 rounded-full mb-3">
-                    <Book className="w-8 h-8 text-primary" />
-                </div>
-                <h3 className="font-bold text-lg">Book Now</h3>
-                <p className="text-sm text-muted-foreground">Instant Pickup</p>
-            </Card>
+            <Link to="/snap" className="block h-full">
+              <Card className="p-4 flex flex-col items-center justify-center text-center shadow-lg cursor-pointer hover:bg-gray-100 transition-colors h-full">
+                  <div className="bg-primary/10 p-3 rounded-full mb-3">
+                      <Book className="w-8 h-8 text-primary" />
+                  </div>
+                  <h3 className="font-bold text-lg">Book Now</h3>
+                  <p className="text-sm text-muted-foreground">Instant Pickup</p>
+              </Card>
+            </Link>
             <Card className="p-4 flex flex-col items-center justify-center text-center shadow-lg cursor-pointer hover:bg-gray-100 transition-colors">
                  <div className="bg-primary/10 p-3 rounded-full mb-3">
                     <CalendarIcon className="w-8 h-8 text-primary" />

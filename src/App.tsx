@@ -10,6 +10,7 @@ import Auth from "./pages/Auth";
 import Agent from "./pages/Agent";
 import History from "./pages/History";
 import { AuthProvider } from "./contexts/AuthContext";
+import Snap from "./pages/Snap";
 
 const queryClient = new QueryClient();
 
@@ -25,6 +26,7 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/agent" element={<Agent />} />
             <Route path="/history" element={<History />} />
+            <Route path="/snap" element={<Snap />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

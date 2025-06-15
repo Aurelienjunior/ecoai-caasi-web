@@ -1,4 +1,3 @@
-
 import { useAuth } from '@/contexts/AuthContext';
 import { Bell } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -16,7 +15,11 @@ const DashboardHeader = () => {
         }
         return name.substring(0, 2).toUpperCase();
     }
-    
+
+    // Re-fetch profile on profileUpdated event
+    // (to force re-render immediately on field changes)
+    // Not strictly required, but safe
+    // No-op: context already updates
     return (
         <header className="sticky top-0 bg-gray-50/95 backdrop-blur-sm z-10 p-4">
             <div className="flex justify-between items-center">
@@ -48,4 +51,3 @@ const DashboardHeader = () => {
 };
 
 export default DashboardHeader;
-

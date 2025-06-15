@@ -8,6 +8,7 @@ import DashboardSummaryCard from './DashboardSummaryCard';
 import OfferSummaryCard from "./OfferSummaryCard";
 import { useAuth } from "@/contexts/AuthContext";
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
+import OnboardingTooltip from '@/components/onboarding/OnboardingTooltip';
 
 const LoggedInHome = () => {
   const { user } = useAuth();
@@ -16,7 +17,10 @@ const LoggedInHome = () => {
     <div className="flex flex-col min-h-screen bg-gray-50 pb-24">
       <DashboardHeader />
       <main className="flex-1 p-4 space-y-6">
-        {/* Removed Profile link at the top */}
+        {/*
+          Show onboarding hint if new user
+        */}
+        <OnboardingTooltip />
 
         <div className="bg-primary text-primary-foreground p-4 rounded-xl flex items-center justify-between shadow-lg">
           <div>
@@ -28,7 +32,6 @@ const LoggedInHome = () => {
         
         {user && <OfferSummaryCard userId={user.id} />}
 
-        {/* Removed <PickupStatusCard /> */}
         <DashboardSummaryCard />
 
         <div className="grid grid-cols-2 gap-4">
@@ -81,4 +84,3 @@ const LoggedInHome = () => {
 };
 
 export default LoggedInHome;
-

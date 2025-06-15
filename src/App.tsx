@@ -11,6 +11,7 @@ import { AuthProvider } from "./contexts/AuthContext";
 import Snap from "./pages/Snap";
 import Payment from "./pages/Payment";
 import Profile from "./pages/Profile";
+import Home from "./pages/Home";
 
 const queryClient = new QueryClient();
 
@@ -29,6 +30,8 @@ const App = () => (
             <Route path="/snap" element={<Snap />} />
             <Route path="/payment" element={<Payment />} />
             <Route path="/profile" element={<Profile />} />
+            {/* USER DASHBOARD ROUTE */}
+            <Route path="/home" element={<Home />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

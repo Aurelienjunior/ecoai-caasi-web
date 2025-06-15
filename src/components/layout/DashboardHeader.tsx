@@ -27,11 +27,11 @@ const DashboardHeader = () => {
                 <div className="flex items-center gap-4">
                     <Bell className="w-6 h-6 text-gray-600" />
                     <LogoutButton />
-                    {/* Make avatar clickable to go to profile */}
+                    {/* Make avatar clickable to go to dashboard */}
                     <button
                         className="focus:outline-none"
-                        onClick={() => navigate('/profile')}
-                        aria-label="Go to profile"
+                        onClick={() => navigate('/home')}
+                        aria-label="Go to dashboard"
                         style={{ background: "none", border: "none", padding: 0, margin: 0 }}
                         tabIndex={0}
                     >

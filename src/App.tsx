@@ -6,7 +6,6 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
-import Agent from "./pages/Agent";
 import History from "./pages/History";
 import { AuthProvider } from "./contexts/AuthContext";
 import Snap from "./pages/Snap";
@@ -25,7 +24,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
-            <Route path="/agent" element={<Agent />} />
+            {/* Removed /agent route */}
             <Route path="/history" element={<History />} />
             <Route path="/snap" element={<Snap />} />
             <Route path="/payment" element={<Payment />} />

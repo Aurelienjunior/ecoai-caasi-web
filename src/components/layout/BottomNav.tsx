@@ -4,7 +4,7 @@ import { NavLink } from 'react-router-dom';
 
 const navItems = [
     { name: 'Home', path: '/', icon: Home },
-    { name: 'Agent', path: '/agent', icon: Bot },
+    // Removed Agent tab; only show available navigation options
     { name: 'History', path: '/history', icon: History },
 ];
 

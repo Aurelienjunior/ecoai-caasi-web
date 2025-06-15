@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -14,6 +13,9 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
@@ -24,9 +26,14 @@ const formSchema = z.object({
 
 interface SchedulePickupFormProps {
   onSchedule: () => void;
+  volume: string;
+  price: string;
 }
 
-const SchedulePickupForm: React.FC<SchedulePickupFormProps> = ({ onSchedule }) => {
+const SchedulePickupForm: React.FC<SchedulePickupFormProps> = ({ onSchedule, volume, price }) => {
+  const { user } = useAuth();
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -37,10 +44,32 @@ const SchedulePickupForm: React.FC<SchedulePickupFormProps> = ({ onSchedule }) =
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log('Pickup scheduled with details:', values);
-    // In a real app, you'd send this data to your backend.
-    onSchedule();
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    if (!user) {
+      toast.error("You must be logged in to schedule a pickup.");
+      return;
+    }
+    setIsSubmitting(true);
+    const { error } = await supabase.from('pickups').insert({
+      user_id: user.id,
+      name: values.name,
+      phone: values.phone,
+      address: values.address,
+      notes: values.notes,
+      volume: volume,
+      price: price,
+      status: 'pending'
+    });
+
+    setIsSubmitting(false);
+
+    if (error) {
+      console.error('Error saving pickup:', error);
+      toast.error(`Failed to schedule pickup: ${error.message}`);
+    } else {
+      console.log('Pickup scheduled with details:', values);
+      onSchedule();
+    }
   }
 
   return (
@@ -98,7 +127,9 @@ const SchedulePickupForm: React.FC<SchedulePickupFormProps> = ({ onSchedule }) =
             </FormItem>
           )}
         />
-        <Button type="submit" className="w-full">Confirm Pickup</Button>
+        <Button type="submit" className="w-full" disabled={isSubmitting}>
+          {isSubmitting ? 'Confirming...' : 'Confirm Pickup'}
+        </Button>
       </form>
     </Form>
   );

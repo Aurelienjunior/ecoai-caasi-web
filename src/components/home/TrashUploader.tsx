@@ -2,9 +2,11 @@ import React from 'react';
 import { UploadCloud, LoaderCircle, Package, CircleDollarSign, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import SchedulePickupForm from './SchedulePickupForm';
 import { toast } from 'sonner';
+import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 interface AnalysisResult {
   volume: string;
@@ -18,6 +20,8 @@ const TrashUploader = () => {
   const [analysisResult, setAnalysisResult] = React.useState<AnalysisResult | null>(null);
   const [isPickupDialogOpen, setIsPickupDialogOpen] = React.useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0];
@@ -61,6 +65,18 @@ const TrashUploader = () => {
     setTimeout(() => {
         handleReset();
     }, 500);
+  };
+
+  const handleScheduleClick = () => {
+    if (user) {
+      setIsPickupDialogOpen(true);
+    } else {
+      toast.info("Please log in to schedule a pickup.", {
+        description: "You'll be redirected to the login page.",
+        duration: 2000,
+      });
+      setTimeout(() => navigate('/auth'), 2000);
+    }
   };
 
   return (
@@ -130,7 +146,7 @@ const TrashUploader = () => {
                           </div>
                           <Dialog open={isPickupDialogOpen} onOpenChange={setIsPickupDialogOpen}>
                             <DialogTrigger asChild>
-                              <Button className="w-full">Schedule Pickup</Button>
+                              <Button className="w-full" onClick={handleScheduleClick}>Schedule Pickup</Button>
                             </DialogTrigger>
                             <DialogContent className="sm:max-w-[425px]">
                               <DialogHeader>
@@ -139,7 +155,11 @@ const TrashUploader = () => {
                                   Enter your details below. An agent will be assigned shortly.
                                 </DialogDescription>
                               </DialogHeader>
-                              <SchedulePickupForm onSchedule={handleScheduleSuccess} />
+                              <SchedulePickupForm 
+                                onSchedule={handleScheduleSuccess} 
+                                volume={analysisResult.volume}
+                                price={analysisResult.price}
+                              />
                             </DialogContent>
                           </Dialog>
                         </CardContent>

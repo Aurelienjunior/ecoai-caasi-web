@@ -1,8 +1,10 @@
-
 import React from 'react';
 import { UploadCloud, LoaderCircle, Package, CircleDollarSign, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '@/components/ui/dialog';
+import SchedulePickupForm from './SchedulePickupForm';
+import { toast } from 'sonner';
 
 interface AnalysisResult {
   volume: string;
@@ -14,6 +16,7 @@ const TrashUploader = () => {
   const [previewUrl, setPreviewUrl] = React.useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = React.useState(false);
   const [analysisResult, setAnalysisResult] = React.useState<AnalysisResult | null>(null);
+  const [isPickupDialogOpen, setIsPickupDialogOpen] = React.useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -47,6 +50,18 @@ const TrashUploader = () => {
         fileInputRef.current.value = "";
     }
   }
+
+  const handleScheduleSuccess = () => {
+    setIsPickupDialogOpen(false);
+    toast.success("Pickup scheduled!", {
+      description: "We've received your request and will notify you once an agent is assigned.",
+      duration: 5000,
+    });
+    // Resetting the entire component state after a short delay
+    setTimeout(() => {
+        handleReset();
+    }, 500);
+  };
 
   return (
     <section id="upload" className="w-full py-12 md:py-24 lg:py-32 bg-secondary">
@@ -113,7 +128,20 @@ const TrashUploader = () => {
                               <p className="font-semibold text-xl">{analysisResult.price}</p>
                             </div>
                           </div>
-                          <Button className="w-full">Schedule Pickup</Button>
+                          <Dialog open={isPickupDialogOpen} onOpenChange={setIsPickupDialogOpen}>
+                            <DialogTrigger asChild>
+                              <Button className="w-full">Schedule Pickup</Button>
+                            </DialogTrigger>
+                            <DialogContent className="sm:max-w-[425px]">
+                              <DialogHeader>
+                                <DialogTitle>Schedule Pickup</DialogTitle>
+                                <DialogDescription>
+                                  Enter your details below. An agent will be assigned shortly.
+                                </DialogDescription>
+                              </DialogHeader>
+                              <SchedulePickupForm onSchedule={handleScheduleSuccess} />
+                            </DialogContent>
+                          </Dialog>
                         </CardContent>
                       </Card>
                     )}

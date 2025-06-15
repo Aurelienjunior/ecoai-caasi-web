@@ -1,10 +1,8 @@
-
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import BottomNav from '@/components/layout/BottomNav';
 import { Card, CardContent } from '@/components/ui/card';
 import { Book, Calendar as CalendarIcon, Bot } from 'lucide-react';
 import { Link } from 'react-router-dom';
-// Removed: import PickupStatusCard from './PickupStatusCard';
 import DashboardSummaryCard from './DashboardSummaryCard';
 import OfferSummaryCard from "./OfferSummaryCard";
 import { useAuth } from "@/contexts/AuthContext";
@@ -16,7 +14,15 @@ const LoggedInHome = () => {
     <div className="flex flex-col min-h-screen bg-gray-50 pb-24">
       <DashboardHeader />
       <main className="flex-1 p-4 space-y-6">
-        
+        {/* Profile link at the top */}
+        <div className="flex justify-end">
+          <Link
+            to="/profile"
+            className="inline-block px-4 py-2 text-sm font-semibold text-primary bg-primary/10 rounded hover:bg-primary/20 transition-colors"
+          >
+            View / Edit Profile
+          </Link>
+        </div>
         <div className="bg-primary text-primary-foreground p-4 rounded-xl flex items-center justify-between shadow-lg">
           <div>
             <p className="font-bold text-lg">Dispose your trash responsibly</p>
@@ -58,7 +64,6 @@ const LoggedInHome = () => {
                 <p className="text-sm text-muted-foreground">Separating plastic and metal improves scanning accuracy.</p>
             </div>
         </Card>
-
       </main>
       <BottomNav />
     </div>
@@ -66,4 +71,3 @@ const LoggedInHome = () => {
 };
 
 export default LoggedInHome;
-

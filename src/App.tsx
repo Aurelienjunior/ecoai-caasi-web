@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -12,6 +11,7 @@ import History from "./pages/History";
 import { AuthProvider } from "./contexts/AuthContext";
 import Snap from "./pages/Snap";
 import Payment from "./pages/Payment";
+import Profile from "./pages/Profile";
 
 const queryClient = new QueryClient();
 
@@ -29,6 +29,7 @@ const App = () => (
             <Route path="/history" element={<History />} />
             <Route path="/snap" element={<Snap />} />
             <Route path="/payment" element={<Payment />} />
+            <Route path="/profile" element={<Profile />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

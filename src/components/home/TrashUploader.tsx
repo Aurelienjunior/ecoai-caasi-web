@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { UploadCloud, LoaderCircle, Package, CircleDollarSign, CheckCircle } from 'lucide-react';
+import { UploadCloud, LoaderCircle, Package, CircleDollarSign, CheckCircle, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '@/components/ui/dialog';
@@ -8,11 +8,7 @@ import SchedulePickupForm from './SchedulePickupForm';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-
-interface AnalysisResult {
-  volume: string;
-  price: string;
-}
+import { analyzeTrashImage, loadImage, AnalysisResult } from '@/lib/imageAnalysis';
 
 const TrashUploader = () => {
   const [file, setFile] = React.useState<File | null>(null);
@@ -24,21 +20,32 @@ const TrashUploader = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0];
     if (selectedFile) {
       setFile(selectedFile);
       setPreviewUrl(URL.createObjectURL(selectedFile));
       setAnalysisResult(null);
       setIsAnalyzing(true);
-      // Simulate API call for analysis
-      setTimeout(() => {
-        setAnalysisResult({
-          volume: 'Medium (approx. 2-3 bags)',
-          price: 'XAF 500',
-        });
+      
+      try {
+        toast.info("Starting AI analysis...", { description: "The model will be downloaded if it's your first time." });
+        const imageElement = await loadImage(selectedFile);
+        const result = await analyzeTrashImage(imageElement);
+        setAnalysisResult(result);
+        if (result.error) {
+          toast.error("Analysis Failed", { description: result.error });
+        } else {
+          toast.success("Analysis Complete!");
+        }
+      } catch (error) {
+        console.error("Error loading or analyzing image:", error);
+        const errMessage = "Could not load the image file.";
+        toast.error("Analysis Failed", { description: errMessage });
+        setAnalysisResult({ volume: 'N/A', price: 'N/A', error: errMessage });
+      } finally {
         setIsAnalyzing(false);
-      }, 2000);
+      }
     }
   };
 
@@ -125,45 +132,53 @@ const TrashUploader = () => {
                       <Card>
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
-                                <CheckCircle className="text-green-500" />
-                                Analysis Complete
+                                {analysisResult.error ? (
+                                  <XCircle className="text-destructive" />
+                                ) : (
+                                  <CheckCircle className="text-green-500" />
+                                )}
+                                {analysisResult.error ? 'Analysis Failed' : 'Analysis Complete'}
                             </CardTitle>
-                          <CardDescription>Based on our AI assessment.</CardDescription>
+                          <CardDescription>
+                            {analysisResult.error ? analysisResult.error : 'Based on our AI assessment.'}
+                          </CardDescription>
                         </CardHeader>
-                        <CardContent className="space-y-4">
-                          <div className="flex items-center gap-4">
-                            <Package className="w-8 h-8 text-primary" />
-                            <div>
-                              <p className="text-sm text-muted-foreground">Estimated Volume</p>
-                              <p className="font-semibold">{analysisResult.volume}</p>
+                        {!analysisResult.error && (
+                          <CardContent className="space-y-4">
+                            <div className="flex items-center gap-4">
+                              <Package className="w-8 h-8 text-primary" />
+                              <div>
+                                <p className="text-sm text-muted-foreground">Estimated Volume</p>
+                                <p className="font-semibold">{analysisResult.volume}</p>
+                              </div>
                             </div>
-                          </div>
-                          <div className="flex items-center gap-4">
-                            <CircleDollarSign className="w-8 h-8 text-primary" />
-                            <div>
-                              <p className="text-sm text-muted-foreground">Pickup Price</p>
-                              <p className="font-semibold text-xl">{analysisResult.price}</p>
+                            <div className="flex items-center gap-4">
+                              <CircleDollarSign className="w-8 h-8 text-primary" />
+                              <div>
+                                <p className="text-sm text-muted-foreground">Pickup Price</p>
+                                <p className="font-semibold text-xl">{analysisResult.price}</p>
+                              </div>
                             </div>
-                          </div>
-                          <Dialog open={isPickupDialogOpen} onOpenChange={setIsPickupDialogOpen}>
-                            <DialogTrigger asChild>
-                              <Button className="w-full" onClick={handleScheduleClick}>Schedule Pickup</Button>
-                            </DialogTrigger>
-                            <DialogContent className="sm:max-w-[425px]">
-                              <DialogHeader>
-                                <DialogTitle>Schedule Pickup</DialogTitle>
-                                <DialogDescription>
-                                  Enter your details below. An agent will be assigned shortly.
-                                </DialogDescription>
-                              </DialogHeader>
-                              <SchedulePickupForm 
-                                onSchedule={handleScheduleSuccess} 
-                                volume={analysisResult.volume}
-                                price={analysisResult.price}
-                              />
-                            </DialogContent>
-                          </Dialog>
-                        </CardContent>
+                            <Dialog open={isPickupDialogOpen} onOpenChange={setIsPickupDialogOpen}>
+                              <DialogTrigger asChild>
+                                <Button className="w-full" onClick={handleScheduleClick}>Schedule Pickup</Button>
+                              </DialogTrigger>
+                              <DialogContent className="sm:max-w-[425px]">
+                                <DialogHeader>
+                                  <DialogTitle>Schedule Pickup</DialogTitle>
+                                  <DialogDescription>
+                                    Enter your details below. An agent will be assigned shortly.
+                                  </DialogDescription>
+                                </DialogHeader>
+                                <SchedulePickupForm 
+                                  onSchedule={handleScheduleSuccess} 
+                                  volume={analysisResult.volume}
+                                  price={analysisResult.price}
+                                />
+                              </DialogContent>
+                            </Dialog>
+                          </CardContent>
+                        )}
                       </Card>
                     )}
                   </div>

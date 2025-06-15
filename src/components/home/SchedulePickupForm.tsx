@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -44,7 +43,7 @@ const SchedulePickupForm: React.FC<SchedulePickupFormProps> = ({ onSchedule }) =
 
   useEffect(() => {
     if (profile?.first_name) {
-      form.setValue('name', `${profile.first_name}${profile.last_name ? ' ' + profile.last_name : ''}`);
+      form.setValue('name', profile.first_name);
     }
     if (user?.phone) {
       form.setValue('phone', user.phone);

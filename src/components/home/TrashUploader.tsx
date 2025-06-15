@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { UploadCloud, LoaderCircle, Package, CircleDollarSign, CheckCircle, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -85,7 +86,7 @@ const TrashUploader = () => {
   };
 
   return (
-    <section id="upload" className="w-full py-12 md:py-24 lg:py-32 bg-secondary">
+    <section id="upload" className="w-full py-14 md:py-24 bg-gradient-to-br from-green-50 via-white to-green-100">
       <div className="container px-4 md:px-6">
         <div className="mx-auto max-w-3xl text-center">
           <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">Get an Instant Quote</h2>
@@ -94,14 +95,17 @@ const TrashUploader = () => {
           </p>
         </div>
         <div className="mt-12">
-          <Card className="max-w-2xl mx-auto">
+          <Card className="max-w-2xl mx-auto bg-white/90 shadow-xl border-green-100">
             <CardContent className="p-6">
               {!previewUrl ? (
                 <div 
-                  className="flex flex-col items-center justify-center p-12 border-2 border-dashed rounded-lg cursor-pointer"
+                  className="flex flex-col items-center justify-center p-10 border-2 border-dashed rounded-xl cursor-pointer bg-gradient-to-br from-green-100 via-white to-green-50 hover:shadow-lg transition-all duration-200"
                   onClick={handleUploadClick}
+                  tabIndex={0}
+                  role="button"
+                  aria-label="Upload a photo"
                 >
-                  <UploadCloud className="w-12 h-12 text-muted-foreground" />
+                  <UploadCloud className="w-14 h-14 text-muted-foreground" />
                   <p className="mt-4 text-lg font-semibold">Click to upload a photo</p>
                   <p className="text-sm text-muted-foreground">PNG, JPG, or WEBP</p>
                   <input
@@ -115,7 +119,7 @@ const TrashUploader = () => {
               ) : (
                 <div className="grid md:grid-cols-2 gap-6">
                   <div className="space-y-4">
-                    <img src={previewUrl} alt="Trash preview" className="rounded-lg object-cover w-full aspect-square" />
+                    <img src={previewUrl} alt="Trash preview" className="rounded-lg object-cover w-full aspect-square border border-green-100 shadow" />
                     <Button variant="outline" className="w-full" onClick={handleReset}>Upload another photo</Button>
                   </div>
                   <div className="flex flex-col justify-center space-y-4">

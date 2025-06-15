@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { UploadCloud, LoaderCircle, Package, CircleDollarSign, CheckCircle, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -63,16 +62,14 @@ const TrashUploader = () => {
     }
   }
 
-  const handleScheduleSuccess = () => {
+  const handleSchedule = (formValues: any) => {
     setIsPickupDialogOpen(false);
-    toast.success("Pickup scheduled!", {
-      description: "We've received your request and will notify you once an agent is assigned.",
-      duration: 5000,
+    navigate('/payment', {
+        state: {
+            scheduleDetails: formValues,
+            analysisResult: analysisResult,
+        }
     });
-    // Resetting the entire component state after a short delay
-    setTimeout(() => {
-        handleReset();
-    }, 500);
   };
 
   const handleScheduleClick = () => {
@@ -171,9 +168,7 @@ const TrashUploader = () => {
                                   </DialogDescription>
                                 </DialogHeader>
                                 <SchedulePickupForm 
-                                  onSchedule={handleScheduleSuccess} 
-                                  volume={analysisResult.volume}
-                                  price={analysisResult.price}
+                                  onSchedule={handleSchedule} 
                                 />
                               </DialogContent>
                             </Dialog>

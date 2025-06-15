@@ -11,6 +11,7 @@ import Agent from "./pages/Agent";
 import History from "./pages/History";
 import { AuthProvider } from "./contexts/AuthContext";
 import Snap from "./pages/Snap";
+import Payment from "./pages/Payment";
 
 const queryClient = new QueryClient();
 
@@ -27,6 +28,7 @@ const App = () => (
             <Route path="/agent" element={<Agent />} />
             <Route path="/history" element={<History />} />
             <Route path="/snap" element={<Snap />} />
+            <Route path="/payment" element={<Payment />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

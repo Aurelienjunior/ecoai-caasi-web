@@ -14,7 +14,7 @@ interface SnapAnalysisViewProps {
   isPickupDialogOpen: boolean;
   setIsPickupDialogOpen: (isOpen: boolean) => void;
   onScheduleClick: () => void;
-  onScheduleSuccess: () => void;
+  onSchedule: (values: any) => void;
   onReset: () => void;
 }
 
@@ -25,7 +25,7 @@ const SnapAnalysisView: React.FC<SnapAnalysisViewProps> = ({
   isPickupDialogOpen,
   setIsPickupDialogOpen,
   onScheduleClick,
-  onScheduleSuccess,
+  onSchedule,
   onReset,
 }) => {
   return (
@@ -105,9 +105,7 @@ const SnapAnalysisView: React.FC<SnapAnalysisViewProps> = ({
                           </DialogDescription>
                         </DialogHeader>
                         <SchedulePickupForm 
-                          onSchedule={onScheduleSuccess} 
-                          volume={analysisResult.volume!}
-                          price={analysisResult.price!}
+                          onSchedule={onSchedule} 
                         />
                     </DialogContent>
                 </Dialog>

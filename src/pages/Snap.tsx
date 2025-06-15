@@ -61,16 +61,14 @@ const Snap = () => {
     }
   }
 
-  const handleScheduleSuccess = () => {
+  const handleSchedule = (formValues: any) => {
     setIsPickupDialogOpen(false);
-    toast.success("Pickup scheduled!", {
-      description: "We've received your request and will notify you once an agent is assigned.",
-      duration: 5000,
+    navigate('/payment', {
+        state: {
+            scheduleDetails: formValues,
+            analysisResult: analysisResult,
+        }
     });
-    
-    setTimeout(() => {
-        navigate('/');
-    }, 1000);
   };
 
   const handleScheduleClick = () => {
@@ -109,7 +107,7 @@ const Snap = () => {
                     isPickupDialogOpen={isPickupDialogOpen}
                     setIsPickupDialogOpen={setIsPickupDialogOpen}
                     onScheduleClick={handleScheduleClick}
-                    onScheduleSuccess={handleScheduleSuccess}
+                    onSchedule={handleSchedule}
                     onReset={handleReset}
                 />
             )}

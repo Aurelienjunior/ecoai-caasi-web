@@ -18,8 +18,6 @@ import {
   DialogClose
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-// Add useNavigate for navigation
-import { useNavigate } from "react-router-dom";
 
 interface Offer {
   id: string;
@@ -49,13 +47,18 @@ const OffersTable = () => {
   const queryClient = useQueryClient();
   const [offerToDelete, setOfferToDelete] = useState<Offer | null>(null);
   const [deleting, setDeleting] = useState(false);
-  const navigate = useNavigate(); // <-- Add this line
+  const [localOffers, setLocalOffers] = useState<Offer[] | null>(null);
 
-  const { data: offers, isLoading, error } = useQuery({
+  const { data: offers, isLoading } = useQuery({
     queryKey: ["user-offers", user?.id],
     queryFn: () => fetchOffers(user!.id),
     enabled: !!user,
+    onSuccess: (data) => setLocalOffers(data),
   });
+
+  const removeOfferLocally = (id: string) => {
+    setLocalOffers((prev) => prev ? prev.filter((offer) => offer.id !== id) : null);
+  };
 
   const handleDelete = async (offer: Offer) => {
     setDeleting(true);
@@ -78,15 +81,15 @@ const OffersTable = () => {
         title: "Offer retracted",
         description: "Your offer has been successfully deleted.",
       });
+      removeOfferLocally(offer.id);
       queryClient.invalidateQueries({ queryKey: ["user-offers", user?.id] });
-      // Redirect after retraction
-      setTimeout(() => {
-        navigate("/"); // You may change "/" to your preferred destination
-      }, 100); // Slight delay for toast to appear
     }
   };
 
   if (!user) return null;
+
+  // Use localOffers if available, otherwise data from useQuery
+  const currentOffers = localOffers ?? offers;
 
   if (isLoading) {
     return (
@@ -96,7 +99,7 @@ const OffersTable = () => {
     );
   }
 
-  if (!offers || offers.length === 0) {
+  if (!currentOffers || currentOffers.length === 0) {
     return <p className="text-muted-foreground">You haven't submitted any offers yet.</p>;
   }
 
@@ -116,7 +119,7 @@ const OffersTable = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {offers.map((offer: Offer) => (
+            {currentOffers.map((offer: Offer) => (
               <TableRow key={offer.id}>
                 <TableCell>{new Date(offer.created_at).toLocaleString()}</TableCell>
                 <TableCell>{offer.address}</TableCell>
@@ -128,7 +131,6 @@ const OffersTable = () => {
                   </span>
                 </TableCell>
                 <TableCell>
-                  {/* Agent info placeholder */}
                   {offer.status === "pending" ? (
                     <span className="text-xs text-muted-foreground">Waiting for agent</span>
                   ) : (
@@ -184,4 +186,3 @@ const OffersTable = () => {
 };
 
 export default OffersTable;
-

@@ -1,8 +1,10 @@
+
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import OffersTableSkeleton from "./OffersTableSkeleton";
 
+// REMOVE agent_name from the Offer interface
 interface Offer {
   id: string;
   created_at: string;
@@ -10,7 +12,7 @@ interface Offer {
   volume: string;
   price: string;
   status: string;
-  agent_name: string | null;
+  // agent_name: string | null; // removed!
 }
 
 const fetchOffers = async (userId: string) => {
@@ -42,6 +44,7 @@ const OffersTable = ({ userId }: { userId: string }) => {
         <button
           className="mt-2 px-4 py-2 rounded bg-primary text-primary-foreground text-sm"
           onClick={() => refetch()}
+          aria-label="Retry loading offers"
         >
           Retry
         </button>
@@ -62,7 +65,7 @@ const OffersTable = ({ userId }: { userId: string }) => {
               <th className="p-2 text-left">Volume</th>
               <th className="p-2 text-left">Price</th>
               <th className="p-2 text-left">Status</th>
-              <th className="p-2 text-left">Agent</th>
+              {/* Agent column removed */}
               <th className="p-2 text-left">Action</th>
             </tr>
           </thead>
@@ -84,7 +87,7 @@ const OffersTable = ({ userId }: { userId: string }) => {
                     {offer.status}
                   </span>
                 </td>
-                <td className="p-2">{offer.agent_name ?? '-'}</td>
+                {/* Agent column removed */}
                 <td className="p-2">
                   {/* ... action buttons ... */}
                 </td>
@@ -113,7 +116,7 @@ const OffersTable = ({ userId }: { userId: string }) => {
               <div><b>Address:</b> {offer.address}</div>
               <div><b>Volume:</b> {offer.volume}</div>
               <div><b>Price:</b> {offer.price}</div>
-              <div><b>Agent:</b> {offer.agent_name ?? '-'}</div>
+              {/* Agent section removed */}
               {/* Action buttons below */}
               <div className="mt-2">
                 {/* ... action button(s) ... */}
@@ -127,3 +130,4 @@ const OffersTable = ({ userId }: { userId: string }) => {
 };
 
 export default OffersTable;
+

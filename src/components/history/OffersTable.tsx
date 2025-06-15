@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+
+import React, { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card } from "@/components/ui/card";
@@ -17,52 +17,20 @@ import {
   DialogClose
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-
-interface Offer {
-  id: string;
-  created_at: string;
-  address: string;
-  price: string;
-  volume: string;
-  status: string;
-  name: string;
-  phone: string;
-  notes: string | null;
-}
-
-const fetchOffers = async (userId: string) => {
-  const { data, error } = await supabase
-    .from("pickups")
-    .select("*")
-    .eq("user_id", userId)
-    .order("created_at", { ascending: false });
-  if (error) throw error;
-  return data;
-};
+import { useUserOffers, Offer } from "@/hooks/useUserOffers";
 
 const OffersTable = () => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const queryClient = useQueryClient();
   const [offerToDelete, setOfferToDelete] = useState<Offer | null>(null);
   const [deleting, setDeleting] = useState(false);
-  const [localOffers, setLocalOffers] = useState<Offer[] | null>(null);
 
-  const { data: offers, isLoading } = useQuery({
-    queryKey: ["user-offers", user?.id],
-    queryFn: () => fetchOffers(user!.id),
-    enabled: !!user,
-  });
-
-  useEffect(() => {
-    if (offers) {
-      setLocalOffers(offers);
-    }
-  }, [offers]);
-
-  const removeOfferLocally = (id: string) => {
-    setLocalOffers((prev) => prev ? prev.filter((offer) => offer.id !== id) : null);
-  };
+  const {
+    offers: currentOffers,
+    isLoading,
+    removeOfferLocally,
+    invalidate,
+  } = useUserOffers(user?.id);
 
   const handleDelete = async (offer: Offer) => {
     setDeleting(true);
@@ -86,14 +54,11 @@ const OffersTable = () => {
         description: "Your offer has been successfully deleted.",
       });
       removeOfferLocally(offer.id);
-      queryClient.invalidateQueries({ queryKey: ["user-offers", user?.id] });
+      invalidate();
     }
   };
 
   if (!user) return null;
-
-  // Use localOffers if available, otherwise data from useQuery
-  const currentOffers = localOffers ?? offers;
 
   if (isLoading) {
     return (

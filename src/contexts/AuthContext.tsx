@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { Session, User } from '@supabase/supabase-js';
 import React, { createContext, useContext, useEffect, useState } from 'react';
@@ -38,12 +39,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
     getSessionAndProfile();
 
-    // Listen for explicit profile updates elsewhere (e.g. Profile page)
-    const onProfileUpdated = (e: CustomEvent) => {
-      setProfile(e.detail);
-    };
-    window.addEventListener("profileUpdated", onProfileUpdated as EventListener);
-
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
@@ -64,7 +59,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     return () => {
       subscription.unsubscribe();
-      window.removeEventListener("profileUpdated", onProfileUpdated as EventListener);
     };
   }, []);
 

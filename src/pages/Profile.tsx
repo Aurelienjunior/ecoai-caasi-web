@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
 import BottomNav from "@/components/layout/BottomNav";
 import DashboardHeader from "@/components/layout/DashboardHeader";
-import SignOutButton from "@/components/auth/SignOutButton";
 
 const Profile = () => {
   const { profile, user } = useAuth();
@@ -17,34 +16,20 @@ const Profile = () => {
   const [availabilityRange, setAvailabilityRange] = useState(profile?.availability_range || "");
   const [loading, setLoading] = useState(false);
 
-  // Track previous fields for summary
-  const [previousProfile, setPreviousProfile] = useState(profile);
-
-  // Refresh form if profile changes (supports hot switching)
-  if (profile && (
-    firstName !== profile.first_name ||
-    city !== profile.city ||
-    area !== profile.area ||
-    availabilityRange !== profile.availability_range
-  )) {
+  // Refresh form if profile changes
+  // (supporting hot profile switching)
+  // Normally only necessary if the context updates
+  // eslint-disable-next-line
+  if (profile && (firstName !== profile.first_name || city !== profile.city || area !== profile.area || availabilityRange !== profile.availability_range)) {
     setFirstName(profile.first_name || "");
     setCity(profile.city || "");
     setArea(profile.area || "");
     setAvailabilityRange(profile.availability_range || "");
-    setPreviousProfile(profile);
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-
-    // Patch: collect fields changed, for summary
-    const changedFields: string[] = [];
-    if (firstName !== previousProfile?.first_name) changedFields.push("First Name");
-    if (city !== previousProfile?.city) changedFields.push("City");
-    if (area !== previousProfile?.area) changedFields.push("Area");
-    if (availabilityRange !== previousProfile?.availability_range) changedFields.push("Availability Range");
-
     const { error } = await supabase
       .from("profiles")
       .update({
@@ -55,27 +40,11 @@ const Profile = () => {
       })
       .eq("id", user?.id);
 
-    // Immediately fetch latest profile & update context
-    let newProfile = null;
-    if (!error && user?.id) {
-      const { data } = await supabase
-        .from("profiles").select("*").eq("id", user.id).single();
-      newProfile = data;
-      // Dispatch custom event to let AuthContext know profile should refresh
-      window.dispatchEvent(new CustomEvent("profileUpdated", { detail: newProfile }));
-    }
-
     setLoading(false);
     if (error) {
       toast({ title: "Update failed", description: error.message, variant: "destructive" });
     } else {
-      toast({
-        title: "Profile updated!",
-        description: changedFields.length
-          ? `Updated: ${changedFields.join(", ")}`
-          : "No fields were changed.",
-        variant: "default"
-      });
+      toast({ title: "Profile updated!" });
     }
   };
 
@@ -109,8 +78,6 @@ const Profile = () => {
                 {loading ? "Updating..." : "Update Profile"}
               </Button>
             </form>
-            <div className="border-t my-6" />
-            <SignOutButton />
           </CardContent>
         </Card>
       </main>

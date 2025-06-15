@@ -1,267 +1,155 @@
+
 import React, { useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import OffersTableSkeleton from "./OffersTableSkeleton";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Card } from "@/components/ui/card";
+import { LoaderCircle, UserCheck, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { toast } from "@/components/ui/use-toast";
-import { Dialog, DialogContent, DialogHeader, DialogFooter, DialogTitle } from "@/components/ui/dialog";
-import { OfferEditDialog } from "./OfferEditDialog";
-import { Trash2, Pencil } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogClose
+} from "@/components/ui/dialog";
+import { useToast } from "@/hooks/use-toast";
+import { useUserOffers, Offer } from "@/hooks/useUserOffers";
 
-interface Offer {
-  id: string;
-  created_at: string;
-  address: string;
-  volume: string;
-  price: string;
-  status: string;
-  notes?: string | null;
-}
+const OffersTable = () => {
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const [offerToDelete, setOfferToDelete] = useState<Offer | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
-const fetchOffers = async (userId: string) => {
-  const { data, error } = await supabase
-    .from("pickups")
-    .select("*")
-    .eq("user_id", userId)
-    .order("created_at", { ascending: false });
+  const {
+    offers: currentOffers,
+    isLoading,
+    removeOfferLocally,
+    invalidate,
+  } = useUserOffers(user?.id);
 
-  if (error) throw error;
-  return data as Offer[];
-};
-
-const OffersTable = ({ userId }: { userId: string }) => {
-  const queryClient = useQueryClient();
-  const [editOpen, setEditOpen] = useState(false);
-  const [editOffer, setEditOffer] = useState<Offer | null>(null);
-
-  const [deleteOpen, setDeleteOpen] = useState(false);
-  const [deleteOffer, setDeleteOffer] = useState<Offer | null>(null);
-  const [isSaving, setIsSaving] = useState(false);
-
-  const { data: offers = [], isLoading, isError, refetch } = useQuery({
-    queryKey: ["offers", userId],
-    queryFn: () => fetchOffers(userId),
-    enabled: !!userId,
-  });
-
-  // Edit offer
-  const handleEdit = (offer: Offer) => {
-    setEditOffer(offer);
-    setEditOpen(true);
-  };
-
-  const handleEditSave = async (values: { address: string; volume: string; notes?: string | null }) => {
-    if (!editOffer) return;
-    setIsSaving(true);
+  const handleDelete = async (offer: Offer) => {
+    setDeleting(true);
     const { error } = await supabase
       .from("pickups")
-      .update({
-        address: values.address,
-        volume: values.volume,
-        notes: values.notes,
-      })
-      .eq("id", editOffer.id);
-    setIsSaving(false);
-    if (!error) {
-      toast({ title: "Offer updated", description: "Your changes were saved." });
-      setEditOpen(false);
-      await queryClient.invalidateQueries({ queryKey: ["offers", userId] });
+      .delete()
+      .eq("id", offer.id)
+      .eq("user_id", user!.id);
+    setDeleting(false);
+    setOfferToDelete(null);
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to retract offer. Please try again.",
+        variant: "destructive",
+      });
     } else {
-      toast({ title: "Failed to update", description: error.message, variant: "destructive" });
+      toast({
+        title: "Offer retracted",
+        description: "Your offer has been successfully deleted.",
+      });
+      removeOfferLocally(offer.id);
+      invalidate();
     }
   };
 
-  // Delete offer
-  const handleRetract = (offer: Offer) => {
-    setDeleteOffer(offer);
-    setDeleteOpen(true);
-  };
-
-  const handleDeleteConfirm = async () => {
-    if (!deleteOffer) return;
-    setIsSaving(true);
-    const { error } = await supabase.from("pickups").delete().eq("id", deleteOffer.id);
-    setIsSaving(false);
-    if (!error) {
-      toast({ title: "Offer retracted", description: "This offer was removed." });
-      setDeleteOpen(false);
-      await queryClient.invalidateQueries({ queryKey: ["offers", userId] });
-    } else {
-      toast({ title: "Failed to retract", description: error.message, variant: "destructive" });
-    }
-  };
+  if (!user) return null;
 
   if (isLoading) {
-    return <OffersTableSkeleton />;
-  }
-
-  if (isError) {
     return (
-      <div className="flex flex-col items-center">
-        <p className="text-destructive">Failed to load offers.</p>
-        <Button
-          className="mt-2"
-          onClick={() => refetch()}
-          aria-label="Retry loading offers"
-        >
-          Retry
-        </Button>
+      <div className="flex items-center gap-2 text-muted-foreground">
+        <LoaderCircle className="animate-spin" /> Loading offers...
       </div>
     );
   }
 
-  // Responsive stacking for mobile
+  if (!currentOffers || currentOffers.length === 0) {
+    return <p className="text-muted-foreground">You haven't submitted any offers yet.</p>;
+  }
+
   return (
     <>
-      {/* EDIT OFFER DIALOG */}
-      <OfferEditDialog
-        open={editOpen}
-        onOpenChange={(open) => setEditOpen(open)}
-        offer={editOffer}
-        onSave={handleEditSave}
-        isSaving={isSaving}
-      />
-      {/* DELETE CONFIRM DIALOG */}
-      <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Retract Offer?</DialogTitle>
-          </DialogHeader>
-          <p>Are you sure you want to retract this offer? This cannot be undone.</p>
-          <DialogFooter>
-            <Button
-              variant="secondary"
-              onClick={() => setDeleteOpen(false)}
-              disabled={isSaving}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={handleDeleteConfirm}
-              disabled={isSaving}
-            >
-              {isSaving ? "Retracting..." : "Yes, Retract"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      <div className="overflow-x-auto p-1">
-        <div className="hidden sm:block">
-          {/* desktop/tablet: normal table */}
-          <table className="w-full whitespace-nowrap">
-            <thead>
-              <tr>
-                <th className="p-2 text-left">Date</th>
-                <th className="p-2 text-left">Address</th>
-                <th className="p-2 text-left">Volume</th>
-                <th className="p-2 text-left">Price</th>
-                <th className="p-2 text-left">Status</th>
-                <th className="p-2 text-left">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {offers.map((offer) => (
-                <tr key={offer.id}>
-                  <td className="p-2">{new Date(offer.created_at).toLocaleString()}</td>
-                  <td className="p-2">{offer.address}</td>
-                  <td className="p-2">{offer.volume}</td>
-                  <td className="p-2">{offer.price}</td>
-                  <td className="p-2">
-                    <span className={`px-2 py-0.5 rounded text-xs ${
-                      offer.status === 'pending'
-                        ? 'bg-yellow-100 text-yellow-700'
-                        : offer.status === 'completed'
-                        ? 'bg-green-100 text-green-700'
-                        : 'bg-gray-100 text-gray-700'
-                    }`}>
-                      {offer.status}
-                    </span>
-                  </td>
-                  <td className="p-2 flex gap-2">
-                    {offer.status === "pending" && (
-                      <>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          aria-label="Edit Offer"
-                          onClick={() => handleEdit(offer)}
-                        >
-                          <Pencil size={16} className="mr-1" /> Edit
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="destructive"
-                          aria-label="Retract Offer"
-                          onClick={() => handleRetract(offer)}
-                          disabled={isSaving}
-                        >
-                          {isSaving ? "Retracting..." : <>
-                            <Trash2 size={16} className="mr-1" /> Retract
-                          </>}
-                        </Button>
-                      </>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        <div className="space-y-2 sm:hidden">
-          {/* mobile: stacked cards */}
-          {offers.map((offer) => (
-            <div key={offer.id} className="border rounded-lg p-3 bg-background shadow-sm">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs text-muted-foreground">{new Date(offer.created_at).toLocaleDateString()}</span>
-                <span className={`px-2 py-0.5 rounded text-xs ${
-                  offer.status === 'pending'
-                    ? 'bg-yellow-100 text-yellow-700'
-                    : offer.status === 'completed'
-                    ? 'bg-green-100 text-green-700'
-                    : 'bg-gray-100 text-gray-700'
-                }`}>
-                  {offer.status}
-                </span>
-              </div>
-              <div className="text-sm">
-                <div><b>Address:</b> {offer.address}</div>
-                <div><b>Volume:</b> {offer.volume}</div>
-                <div><b>Price:</b> {offer.price}</div>
-                {offer.notes && (
-                  <div><b>Notes:</b> {offer.notes}</div>
-                )}
-                <div className="mt-2 flex gap-2">
-                  {offer.status === "pending" && (
-                    <>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        aria-label="Edit Offer"
-                        onClick={() => handleEdit(offer)}
-                      >
-                        <Pencil size={16} className="mr-1" /> Edit
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        aria-label="Retract Offer"
-                        onClick={() => handleRetract(offer)}
-                        disabled={isSaving}
-                      >
-                        {isSaving ? "Retracting..." : <>
-                          <Trash2 size={16} className="mr-1" /> Retract
-                        </>}
-                      </Button>
-                    </>
+      <Card className="overflow-x-auto p-4">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Date</TableHead>
+              <TableHead>Address</TableHead>
+              <TableHead>Volume</TableHead>
+              <TableHead>Price</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Agent</TableHead>
+              <TableHead>Action</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {currentOffers.map((offer: Offer) => (
+              <TableRow key={offer.id}>
+                <TableCell>{new Date(offer.created_at).toLocaleString()}</TableCell>
+                <TableCell>{offer.address}</TableCell>
+                <TableCell>{offer.volume}</TableCell>
+                <TableCell>{offer.price}</TableCell>
+                <TableCell>
+                  <span className={`px-2 py-1 rounded text-xs font-semibold ${offer.status === 'pending' ? 'bg-yellow-100 text-yellow-700' : offer.status === 'completed' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}`}>
+                    {offer.status}
+                  </span>
+                </TableCell>
+                <TableCell>
+                  {offer.status === "pending" ? (
+                    <span className="text-xs text-muted-foreground">Waiting for agent</span>
+                  ) : (
+                    <span className="flex items-center gap-1 text-green-700"><UserCheck size={16} /> Assigned</span>
                   )}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
+                </TableCell>
+                <TableCell>
+                  {offer.status === "pending" ? (
+                    <Dialog open={offerToDelete?.id === offer.id} onOpenChange={(open) => !open && setOfferToDelete(null)}>
+                      <DialogTrigger asChild>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          className="px-3 py-1 h-auto flex gap-1"
+                          onClick={() => setOfferToDelete(offer)}
+                          disabled={deleting}
+                        >
+                          <Trash2 size={16} /> Retract
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Retract Offer?</DialogTitle>
+                          <DialogDescription>
+                            Are you sure you want to retract this offer? This action cannot be undone.
+                          </DialogDescription>
+                        </DialogHeader>
+                        <DialogFooter>
+                          <DialogClose asChild>
+                            <Button variant="outline" disabled={deleting}>Cancel</Button>
+                          </DialogClose>
+                          <Button
+                            variant="destructive"
+                            onClick={() => handleDelete(offer)}
+                            disabled={deleting}
+                          >
+                            {deleting ? "Deleting..." : "Yes, retract"}
+                          </Button>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
+                  ) : (
+                    <span className="text-xs text-muted-foreground">No action</span>
+                  )}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </Card>
     </>
   );
 };

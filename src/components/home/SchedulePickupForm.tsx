@@ -1,4 +1,5 @@
-import React from 'react';
+
+import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -31,7 +32,7 @@ interface SchedulePickupFormProps {
 }
 
 const SchedulePickupForm: React.FC<SchedulePickupFormProps> = ({ onSchedule, volume, price }) => {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -43,6 +44,15 @@ const SchedulePickupForm: React.FC<SchedulePickupFormProps> = ({ onSchedule, vol
       notes: '',
     },
   });
+
+  useEffect(() => {
+    if (profile?.first_name) {
+      form.setValue('name', profile.first_name);
+    }
+    if (user?.phone) {
+      form.setValue('phone', user.phone);
+    }
+  }, [profile, user, form]);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     if (!user) {

@@ -48,6 +48,36 @@ export type Database = {
         }
         Relationships: []
       }
+      profiles: {
+        Row: {
+          area: string | null
+          availability_range: string | null
+          city: string | null
+          created_at: string
+          first_name: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          area?: string | null
+          availability_range?: string | null
+          city?: string | null
+          created_at?: string
+          first_name?: string | null
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          area?: string | null
+          availability_range?: string | null
+          city?: string | null
+          created_at?: string
+          first_name?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

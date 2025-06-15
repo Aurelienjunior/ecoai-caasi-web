@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
@@ -25,6 +26,10 @@ const Auth = () => {
   const navigate = useNavigate();
 
   const validatePhoneNumber = (number: string) => {
+    // Allow Supabase's magic test number for development
+    if (number === '+13334445555') {
+      return true;
+    }
     const pattern = /^\+2376[5-9]\d{7}$/;
     return pattern.test(number);
   };

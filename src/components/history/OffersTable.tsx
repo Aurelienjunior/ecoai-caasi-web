@@ -18,6 +18,8 @@ import {
   DialogClose
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
+// Add useNavigate for navigation
+import { useNavigate } from "react-router-dom";
 
 interface Offer {
   id: string;
@@ -47,6 +49,7 @@ const OffersTable = () => {
   const queryClient = useQueryClient();
   const [offerToDelete, setOfferToDelete] = useState<Offer | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const navigate = useNavigate(); // <-- Add this line
 
   const { data: offers, isLoading, error } = useQuery({
     queryKey: ["user-offers", user?.id],
@@ -76,6 +79,10 @@ const OffersTable = () => {
         description: "Your offer has been successfully deleted.",
       });
       queryClient.invalidateQueries({ queryKey: ["user-offers", user?.id] });
+      // Redirect after retraction
+      setTimeout(() => {
+        navigate("/"); // You may change "/" to your preferred destination
+      }, 100); // Slight delay for toast to appear
     }
   };
 

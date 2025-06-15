@@ -4,7 +4,7 @@ import { Session, User } from '@supabase/supabase-js';
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Tables } from '@/integrations/supabase/types';
 
-type Profile = Tables<'profiles'>;
+type Profile = Tables<'profiles'> & { avatar_url?: string | null };
 
 interface AuthContextType {
   session: Session | null;

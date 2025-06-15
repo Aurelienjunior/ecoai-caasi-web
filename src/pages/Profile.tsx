@@ -1,4 +1,3 @@
-
 import { useAuth } from "@/contexts/AuthContext";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -75,7 +74,7 @@ const Profile = () => {
                 <label className="block text-sm font-medium mb-1">Availability Range</label>
                 <Input value={availabilityRange} onChange={(e) => setAvailabilityRange(e.target.value)} />
               </div>
-              <Button type="submit" loading={loading} className="w-full">
+              <Button type="submit" disabled={loading} className="w-full">
                 {loading ? "Updating..." : "Update Profile"}
               </Button>
             </form>

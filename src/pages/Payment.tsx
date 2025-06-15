@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -10,6 +10,24 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { LoaderCircle } from 'lucide-react';
 
+// Add mock data for development when the page is accessed directly.
+const mockData = {
+  scheduleDetails: {
+    name: 'Jane Doe',
+    phone: '+237 670 00 00 00',
+    address: '123 Tech Avenue, Buea',
+    notes: 'Call on arrival.',
+  },
+  analysisResult: {
+    volume: 'Medium Bag',
+    price: '1500 XAF',
+    wasteType: 'Mixed Recyclables',
+    detectedItems: [],
+    error: null,
+  },
+};
+
+
 const Payment = () => {
     const location = useLocation();
     const navigate = useNavigate();
@@ -17,22 +35,8 @@ const Payment = () => {
     const [paymentPhone, setPaymentPhone] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const { scheduleDetails, analysisResult } = location.state || {};
-    
-    useEffect(() => {
-        if (!scheduleDetails || !analysisResult) {
-            toast.error("Something went wrong, redirecting.");
-            navigate(-1);
-        }
-    }, [scheduleDetails, analysisResult, navigate]);
-
-    if (!scheduleDetails || !analysisResult) {
-        return (
-            <div className="flex items-center justify-center h-screen">
-                <LoaderCircle className="w-10 h-10 animate-spin text-primary" />
-            </div>
-        );
-    }
+    // Use data from location state, or mock data if it's not available.
+    const { scheduleDetails, analysisResult } = location.state || mockData;
 
     const handlePayment = async () => {
         if (!user) {

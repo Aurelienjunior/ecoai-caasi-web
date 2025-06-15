@@ -10,10 +10,11 @@ const Hero = () => {
           <div className="flex flex-col justify-center space-y-6">
             <div className="space-y-4">
               <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight leading-tight drop-shadow-sm text-emerald-900">
-                Make <span className="text-primary">Trash</span> Your <span className="text-emerald-500">Treasure</span>
+                Transforming Waste Management<br />
+                <span className="text-primary">For a Greener Africa</span>
               </h1>
               <p className="max-w-[600px] text-muted-foreground md:text-xl font-medium">
-                Snap a photo, get cash instantly, and help make Yaoundé a greener city. 
+                Snap a photo, get rewarded instantly, and help build cleaner communities across Africa.
                 Our EcoAgents will handle the rest!
               </p>
             </div>
@@ -31,9 +32,9 @@ const Hero = () => {
           <div className="relative flex lg:justify-end items-center">
             <div className="absolute left-0 right-0 m-auto rounded-full bg-green-200/50 w-72 h-72 blur-3xl opacity-70 scale-110 z-0"></div>
             <img
-              alt="Waste Collection Hero"
+              alt="African waste management - community cleanup"
               className="relative z-10 mx-auto aspect-video overflow-hidden rounded-2xl object-cover sm:w-full shadow-xl border border-green-100 hover:scale-105 transition-transform duration-300"
-              src="https://images.unsplash.com/photo-1466721591366-2d5fba72006d?q=80&w=2070&auto=format&fit=crop"
+              src="https://images.unsplash.com/photo-1469041797191-50ace28483c3?q=80&w=1400&auto=format&fit=crop"
             />
           </div>
         </div>
@@ -43,3 +44,4 @@ const Hero = () => {
 };
 
 export default Hero;
+

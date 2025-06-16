@@ -21,47 +21,120 @@ const Auth = () => {
 
   const navigate = useNavigate();
 
+  // Input validation functions
+  const validateEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const validatePassword = (password: string) => {
+    return password.length >= 8;
+  };
+
+  const validateName = (name: string) => {
+    return name.length >= 2 && name.length <= 50;
+  };
+
+  const sanitizeInput = (input: string) => {
+    return input.trim().replace(/[<>]/g, '');
+  };
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    if (error) {
-      toast.error(error.message);
-    } else {
-      toast.success('Logged in successfully!');
-      navigate('/');
+    
+    // Input validation
+    if (!validateEmail(email)) {
+      toast.error('Please enter a valid email address');
+      return;
     }
+
+    if (!validatePassword(password)) {
+      toast.error('Password must be at least 8 characters long');
+      return;
+    }
+
+    setLoading(true);
+    
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email: sanitizeInput(email),
+        password,
+      });
+
+      if (error) {
+        console.error('Login error:', error);
+        toast.error(error.message);
+      } else {
+        toast.success('Logged in successfully!');
+        navigate('/');
+      }
+    } catch (error) {
+      console.error('Unexpected login error:', error);
+      toast.error('An unexpected error occurred during login');
+    }
+    
     setLoading(false);
   };
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          first_name: firstName,
-          city,
-          area,
-          availability_range: availabilityRange,
-        },
-      },
-    });
 
-    if (error) {
-      toast.error(error.message);
-    } else if (data.user && data.user.identities && data.user.identities.length === 0) {
-        toast.error("A user with this email already exists.");
-    } 
-    else {
-      toast.success('Account created! Please check your email to verify your account.');
+    // Enhanced input validation
+    if (!validateEmail(email)) {
+      toast.error('Please enter a valid email address');
+      return;
     }
+
+    if (!validatePassword(password)) {
+      toast.error('Password must be at least 8 characters long');
+      return;
+    }
+
+    if (firstName && !validateName(firstName)) {
+      toast.error('First name must be between 2 and 50 characters');
+      return;
+    }
+
+    if (city && (city.length < 2 || city.length > 100)) {
+      toast.error('City must be between 2 and 100 characters');
+      return;
+    }
+
+    if (area && (area.length < 2 || area.length > 100)) {
+      toast.error('Area must be between 2 and 100 characters');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email: sanitizeInput(email),
+        password,
+        options: {
+          data: {
+            first_name: sanitizeInput(firstName),
+            city: sanitizeInput(city),
+            area: sanitizeInput(area),
+            availability_range: sanitizeInput(availabilityRange),
+          },
+          emailRedirectTo: `${window.location.origin}/auth?verified=true`,
+        },
+      });
+
+      if (error) {
+        console.error('Signup error:', error);
+        toast.error(error.message);
+      } else if (data.user && data.user.identities && data.user.identities.length === 0) {
+        toast.error("A user with this email already exists.");
+      } else {
+        toast.success('Account created! Please check your email to verify your account.');
+      }
+    } catch (error) {
+      console.error('Unexpected signup error:', error);
+      toast.error('An unexpected error occurred during signup');
+    }
+
     setLoading(false);
   };
 

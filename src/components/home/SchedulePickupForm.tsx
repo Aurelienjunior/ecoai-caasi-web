@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -16,10 +17,19 @@ import { Textarea } from '@/components/ui/textarea';
 import { useAuth } from '@/contexts/AuthContext';
 
 const formSchema = z.object({
-  name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
-  phone: z.string().min(9, { message: 'Please enter a valid phone number.' }),
-  address: z.string().min(10, { message: 'Address must be at least 10 characters.' }),
-  notes: z.string().optional(),
+  name: z.string()
+    .min(2, { message: 'Name must be at least 2 characters.' })
+    .max(50, { message: 'Name must not exceed 50 characters.' })
+    .regex(/^[a-zA-Z\s]+$/, { message: 'Name can only contain letters and spaces.' }),
+  phone: z.string()
+    .min(9, { message: 'Please enter a valid phone number.' })
+    .regex(/^(\+237|237)?[0-9]{9}$/, { message: 'Please enter a valid Cameroon phone number.' }),
+  address: z.string()
+    .min(10, { message: 'Address must be at least 10 characters.' })
+    .max(500, { message: 'Address must not exceed 500 characters.' }),
+  notes: z.string()
+    .max(1000, { message: 'Notes must not exceed 1000 characters.' })
+    .optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -50,8 +60,20 @@ const SchedulePickupForm: React.FC<SchedulePickupFormProps> = ({ onSchedule }) =
     }
   }, [profile, user, form]);
 
+  const sanitizeInput = (input: string) => {
+    return input.trim().replace(/[<>]/g, '');
+  };
+
   function onSubmit(values: FormValues) {
-    onSchedule(values);
+    // Sanitize all inputs before submission
+    const sanitizedValues = {
+      name: sanitizeInput(values.name),
+      phone: sanitizeInput(values.phone),
+      address: sanitizeInput(values.address),
+      notes: values.notes ? sanitizeInput(values.notes) : '',
+    };
+    
+    onSchedule(sanitizedValues);
   }
 
   return (

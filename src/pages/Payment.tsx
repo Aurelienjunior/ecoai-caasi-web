@@ -27,7 +27,6 @@ const mockData = {
   },
 };
 
-
 const Payment = () => {
     const location = useLocation();
     const navigate = useNavigate();
@@ -38,46 +37,68 @@ const Payment = () => {
     // Use data from location state, or mock data if it's not available.
     const { scheduleDetails, analysisResult } = location.state || mockData;
 
+    // Enhanced input validation
+    const validatePhoneNumber = (phone: string) => {
+        const phoneRegex = /^[0-9]{9}$/;
+        return phoneRegex.test(phone);
+    };
+
+    const sanitizeInput = (input: string) => {
+        return input.trim().replace(/[<>]/g, '');
+    };
+
     const handlePayment = async () => {
         if (!user) {
             toast.error("You must be logged in to make a payment.");
             return;
         }
-        if (paymentPhone.length < 9) {
+        
+        if (!validatePhoneNumber(paymentPhone)) {
             toast.error("Please enter a valid 9-digit phone number.");
+            return;
+        }
+
+        // Additional validation for schedule details
+        if (!scheduleDetails?.name || !scheduleDetails?.phone || !scheduleDetails?.address) {
+            toast.error("Missing required scheduling information. Please go back and complete the form.");
             return;
         }
 
         setIsSubmitting(true);
 
-        // Here would be the actual payment gateway integration.
-        // For now, we'll simulate a successful payment.
-        console.log("Simulating payment with phone:", `+237${paymentPhone}`);
-        await new Promise(res => setTimeout(res, 2000));
+        try {
+            // Here would be the actual payment gateway integration.
+            // For now, we'll simulate a successful payment.
+            console.log("Simulating payment with phone:", `+237${paymentPhone}`);
+            await new Promise(res => setTimeout(res, 2000));
 
-        const { error } = await supabase.from('pickups').insert({
-          user_id: user.id,
-          name: scheduleDetails.name,
-          phone: scheduleDetails.phone,
-          address: scheduleDetails.address,
-          notes: scheduleDetails.notes,
-          volume: analysisResult.volume,
-          price: analysisResult.price,
-          status: 'pending'
-        });
-    
-        setIsSubmitting(false);
-    
-        if (error) {
-          console.error('Error saving pickup:', error);
-          toast.error(`Failed to schedule pickup: ${error.message}`);
-        } else {
-          toast.success("Payment successful and pickup scheduled!", {
-            description: "We've received your request and will notify you once an agent is assigned.",
-            duration: 5000,
-          });
-          navigate('/history');
+            const { error } = await supabase.from('pickups').insert({
+              user_id: user.id,
+              name: sanitizeInput(scheduleDetails.name),
+              phone: sanitizeInput(scheduleDetails.phone),
+              address: sanitizeInput(scheduleDetails.address),
+              notes: scheduleDetails.notes ? sanitizeInput(scheduleDetails.notes) : null,
+              volume: sanitizeInput(analysisResult.volume),
+              price: sanitizeInput(analysisResult.price),
+              status: 'pending'
+            });
+        
+            if (error) {
+              console.error('Error saving pickup:', error);
+              toast.error(`Failed to schedule pickup: ${error.message}`);
+            } else {
+              toast.success("Payment successful and pickup scheduled!", {
+                description: "We've received your request and will notify you once an agent is assigned.",
+                duration: 5000,
+              });
+              navigate('/history');
+            }
+        } catch (error) {
+            console.error('Payment processing error:', error);
+            toast.error("Payment processing failed. Please try again.");
         }
+
+        setIsSubmitting(false);
     }
 
     return (
@@ -117,13 +138,21 @@ const Payment = () => {
                                 className="rounded-l-none border-l-0 focus-visible:ring-0 focus-visible:ring-offset-0"
                                 value={paymentPhone}
                                 onChange={(e) => setPaymentPhone(e.target.value.replace(/\D/g, '').slice(0, 9))}
+                                maxLength={9}
                             />
                         </div>
+                        {paymentPhone && !validatePhoneNumber(paymentPhone) && (
+                            <p className="text-sm text-red-500">Please enter exactly 9 digits</p>
+                        )}
                     </div>
                 </div>
 
                 <div className="space-y-4 pt-4">
-                    <Button onClick={handlePayment} disabled={isSubmitting} className="w-full bg-green-600 hover:bg-green-700">
+                    <Button 
+                        onClick={handlePayment} 
+                        disabled={isSubmitting || !validatePhoneNumber(paymentPhone)} 
+                        className="w-full bg-green-600 hover:bg-green-700"
+                    >
                         {isSubmitting ? <LoaderCircle className="animate-spin" /> : `Pay ${analysisResult.price}`}
                     </Button>
                     <p className="text-xs text-green-600 text-center">Your payment is 100% secured.</p>

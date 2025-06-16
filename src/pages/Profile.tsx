@@ -1,3 +1,4 @@
+
 import { useAuth } from "@/contexts/AuthContext";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,6 +17,19 @@ const Profile = () => {
   const [availabilityRange, setAvailabilityRange] = useState(profile?.availability_range || "");
   const [loading, setLoading] = useState(false);
 
+  // Input validation functions
+  const validateName = (name: string) => {
+    return name.length >= 2 && name.length <= 50 && /^[a-zA-Z\s]+$/.test(name);
+  };
+
+  const validateLocation = (location: string) => {
+    return location.length >= 2 && location.length <= 100;
+  };
+
+  const sanitizeInput = (input: string) => {
+    return input.trim().replace(/[<>]/g, '');
+  };
+
   // Refresh form if profile changes
   // (supporting hot profile switching)
   // Normally only necessary if the context updates
@@ -29,23 +43,64 @@ const Profile = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Enhanced validation
+    if (firstName && !validateName(firstName)) {
+      toast({ 
+        title: "Validation Error", 
+        description: "First name must be 2-50 characters and contain only letters and spaces", 
+        variant: "destructive" 
+      });
+      return;
+    }
+
+    if (city && !validateLocation(city)) {
+      toast({ 
+        title: "Validation Error", 
+        description: "City must be 2-100 characters", 
+        variant: "destructive" 
+      });
+      return;
+    }
+
+    if (area && !validateLocation(area)) {
+      toast({ 
+        title: "Validation Error", 
+        description: "Area must be 2-100 characters", 
+        variant: "destructive" 
+      });
+      return;
+    }
+
     setLoading(true);
-    const { error } = await supabase
-      .from("profiles")
-      .update({
-        first_name: firstName,
-        city,
-        area,
-        availability_range: availabilityRange,
-      })
-      .eq("id", user?.id);
+
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({
+          first_name: firstName ? sanitizeInput(firstName) : null,
+          city: city ? sanitizeInput(city) : null,
+          area: area ? sanitizeInput(area) : null,
+          availability_range: availabilityRange ? sanitizeInput(availabilityRange) : null,
+        })
+        .eq("id", user?.id);
+
+      if (error) {
+        console.error('Profile update error:', error);
+        toast({ title: "Update failed", description: error.message, variant: "destructive" });
+      } else {
+        toast({ title: "Profile updated successfully!" });
+      }
+    } catch (error) {
+      console.error('Unexpected profile update error:', error);
+      toast({ 
+        title: "Update failed", 
+        description: "An unexpected error occurred", 
+        variant: "destructive" 
+      });
+    }
 
     setLoading(false);
-    if (error) {
-      toast({ title: "Update failed", description: error.message, variant: "destructive" });
-    } else {
-      toast({ title: "Profile updated!" });
-    }
   };
 
   return (
@@ -60,19 +115,37 @@ const Profile = () => {
             <form className="space-y-4" onSubmit={handleSubmit}>
               <div>
                 <label className="block text-sm font-medium mb-1">First Name</label>
-                <Input value={firstName} onChange={(e) => setFirstName(e.target.value)} required />
+                <Input 
+                  value={firstName} 
+                  onChange={(e) => setFirstName(e.target.value)}
+                  maxLength={50}
+                  pattern="[a-zA-Z\s]*"
+                  title="Only letters and spaces allowed"
+                />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">City</label>
-                <Input value={city} onChange={(e) => setCity(e.target.value)} />
+                <Input 
+                  value={city} 
+                  onChange={(e) => setCity(e.target.value)}
+                  maxLength={100}
+                />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Area</label>
-                <Input value={area} onChange={(e) => setArea(e.target.value)} />
+                <Input 
+                  value={area} 
+                  onChange={(e) => setArea(e.target.value)}
+                  maxLength={100}
+                />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Availability Range</label>
-                <Input value={availabilityRange} onChange={(e) => setAvailabilityRange(e.target.value)} />
+                <Input 
+                  value={availabilityRange} 
+                  onChange={(e) => setAvailabilityRange(e.target.value)}
+                  maxLength={100}
+                />
               </div>
               <Button type="submit" disabled={loading} className="w-full">
                 {loading ? "Updating..." : "Update Profile"}

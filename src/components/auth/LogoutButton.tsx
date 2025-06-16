@@ -14,6 +14,7 @@ const LogoutButton = () => {
     setLoading(true);
     const { error } = await supabase.auth.signOut();
     setLoading(false);
+    
     if (error) {
       toast({
         title: "Logout failed",
@@ -22,7 +23,6 @@ const LogoutButton = () => {
       });
     } else {
       toast({ title: "Logged out" });
-      // Optionally redirect to login or home page
       navigate("/auth");
     }
   };
@@ -44,4 +44,3 @@ const LogoutButton = () => {
 };
 
 export default LogoutButton;
-

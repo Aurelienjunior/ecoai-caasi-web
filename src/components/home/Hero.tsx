@@ -1,7 +1,9 @@
-import React from "react";
+
 import { Button } from "@/components/ui/button";
+
 const Hero = () => {
-  return <section className="w-full py-14 md:py-20 xl:py-36 bg-gradient-to-br from-green-50 via-secondary to-white">
+  return (
+    <section className="w-full py-14 md:py-20 xl:py-36 bg-gradient-to-br from-green-50 via-secondary to-white">
       <div className="container px-4 md:px-6">
         <div className="grid gap-10 lg:grid-cols-[1fr_500px] lg:gap-12 xl:grid-cols-[1fr_650px]">
           <div className="flex flex-col justify-center space-y-6">
@@ -21,16 +23,24 @@ const Hero = () => {
                 </Button>
               </a>
               <a href="#how-it-works">
-                <Button variant="outline" size="lg" className="text-base px-8 py-4">How It Works</Button>
+                <Button variant="outline" size="lg" className="text-base px-8 py-4">
+                  How It Works
+                </Button>
               </a>
             </div>
           </div>
           <div className="relative flex lg:justify-end items-center">
             <div className="absolute left-0 right-0 m-auto rounded-full bg-green-200/50 w-72 h-72 blur-3xl opacity-70 scale-110 z-0"></div>
-            <img alt="Waste Collection Hero" className="relative z-10 mx-auto aspect-video overflow-hidden rounded-2xl object-cover sm:w-full shadow-xl border border-green-100 hover:scale-105 transition-transform duration-300" src="/lovable-uploads/45a6a556-0796-45b9-8a93-f178a0e4606d.png" />
+            <img 
+              alt="Waste Collection Hero" 
+              className="relative z-10 mx-auto aspect-video overflow-hidden rounded-2xl object-cover sm:w-full shadow-xl border border-green-100 hover:scale-105 transition-transform duration-300" 
+              src="/lovable-uploads/45a6a556-0796-45b9-8a93-f178a0e4606d.png" 
+            />
           </div>
         </div>
       </div>
-    </section>;
+    </section>
+  );
 };
+
 export default Hero;

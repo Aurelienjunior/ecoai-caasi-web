@@ -3,7 +3,6 @@ import Header from "@/components/layout/Header";
 import Hero from "@/components/home/Hero";
 import HowItWorks from "@/components/home/HowItWorks";
 import TrashUploader from "@/components/home/TrashUploader";
-import React from "react";
 
 const FeatureHighlights = () => (
   <div className="flex flex-wrap justify-center gap-4 my-8 max-w-2xl mx-auto">

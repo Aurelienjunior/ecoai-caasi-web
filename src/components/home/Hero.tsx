@@ -34,7 +34,7 @@ const Hero = () => {
             <img 
               alt="Waste Collection Hero" 
               className="relative z-10 mx-auto aspect-video overflow-hidden rounded-2xl object-cover sm:w-full shadow-xl border border-green-100 hover:scale-105 transition-transform duration-300" 
-              src="/lovable-uploads/45a6a556-0796-45b9-8a93-f178a0e4606d.png" 
+              src="/images/45a6a556-0796-45b9-8a93-f178a0e4606d.png" 
             />
           </div>
         </div>

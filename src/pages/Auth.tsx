@@ -1,8 +1,19 @@
-
 import { useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { auth, db } from '@/firebase';
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+} from 'firebase/auth';
+import { doc, setDoc } from 'firebase/firestore';
+
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import LoginForm from '@/components/auth/LoginForm';
@@ -21,28 +32,20 @@ const Auth = () => {
 
   const navigate = useNavigate();
 
-  // Input validation functions
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
   };
 
-  const validatePassword = (password: string) => {
-    return password.length >= 8;
-  };
+  const validatePassword = (password: string) => password.length >= 8;
 
-  const validateName = (name: string) => {
-    return name.length >= 2 && name.length <= 50;
-  };
+  const validateName = (name: string) => name.length >= 2 && name.length <= 50;
 
-  const sanitizeInput = (input: string) => {
-    return input.trim().replace(/[<>]/g, '');
-  };
+  const sanitizeInput = (input: string) => input.trim().replace(/[<>]/g, '');
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Input validation
+
     if (!validateEmail(email)) {
       toast.error('Please enter a valid email address');
       return;
@@ -54,32 +57,26 @@ const Auth = () => {
     }
 
     setLoading(true);
-    
-    try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email: sanitizeInput(email),
-        password,
-      });
 
-      if (error) {
-        console.error('Login error:', error);
+    try {
+      await signInWithEmailAndPassword(auth, sanitizeInput(email), password);
+      toast.success('Logged in successfully!');
+      navigate('/');
+    } catch (error: unknown) {
+      console.error('Login error:', error);
+      if (error instanceof Error) {
         toast.error(error.message);
       } else {
-        toast.success('Logged in successfully!');
-        navigate('/');
+        toast.error('Failed to login');
       }
-    } catch (error) {
-      console.error('Unexpected login error:', error);
-      toast.error('An unexpected error occurred during login');
     }
-    
+
     setLoading(false);
   };
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Enhanced input validation
     if (!validateEmail(email)) {
       toast.error('Please enter a valid email address');
       return;
@@ -108,31 +105,37 @@ const Auth = () => {
     setLoading(true);
 
     try {
-      const { data, error } = await supabase.auth.signUp({
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        sanitizeInput(email),
+        password
+      );
+
+      await setDoc(doc(db, 'users', userCredential.user.uid), {
         email: sanitizeInput(email),
-        password,
-        options: {
-          data: {
-            first_name: sanitizeInput(firstName),
-            city: sanitizeInput(city),
-            area: sanitizeInput(area),
-            availability_range: sanitizeInput(availabilityRange),
-          },
-          emailRedirectTo: `${window.location.origin}/auth?verified=true`,
-        },
+        full_name: sanitizeInput(firstName),
+        city: sanitizeInput(city),
+        area: sanitizeInput(area),
+        availability_range: sanitizeInput(availabilityRange),
+      });
+      console.log('User created successfully', {
+        email: sanitizeInput(email),
+        full_name: sanitizeInput(firstName),
+        city: sanitizeInput(city),
+        area: sanitizeInput(area),
+        availability_range: sanitizeInput(availabilityRange),
       });
 
-      if (error) {
-        console.error('Signup error:', error);
+      toast.success(
+        'Account created! Please check your email to verify your account.'
+      );
+    } catch (error: unknown) {
+      console.error('Signup error:', error);
+      if (error instanceof Error) {
         toast.error(error.message);
-      } else if (data.user && data.user.identities && data.user.identities.length === 0) {
-        toast.error("A user with this email already exists.");
       } else {
-        toast.success('Account created! Please check your email to verify your account.');
+        toast.error('Signup failed');
       }
-    } catch (error) {
-      console.error('Unexpected signup error:', error);
-      toast.error('An unexpected error occurred during signup');
     }
 
     setLoading(false);
@@ -159,7 +162,9 @@ const Auth = () => {
             <Card>
               <CardHeader>
                 <CardTitle>Login</CardTitle>
-                <CardDescription>Enter your email and password to log in.</CardDescription>
+                <CardDescription>
+                  Enter your email and password to log in.
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <LoginForm
@@ -177,7 +182,9 @@ const Auth = () => {
             <Card>
               <CardHeader>
                 <CardTitle>Sign Up</CardTitle>
-                <CardDescription>Create an account to start scheduling pickups.</CardDescription>
+                <CardDescription>
+                  Create an account to start scheduling pickups.
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <SignUpForm

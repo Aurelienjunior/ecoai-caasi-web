@@ -1,19 +1,27 @@
-
-import Header from "@/components/layout/Header";
-import Hero from "@/components/home/Hero";
-import HowItWorks from "@/components/home/HowItWorks";
-import TrashUploader from "@/components/home/TrashUploader";
+import Header from '@/components/layout/Header';
+import Hero from '@/components/home/Hero';
+import HowItWorks from '@/components/home/HowItWorks';
+import TrashUploader from '@/components/home/TrashUploader';
 
 const FeatureHighlights = () => (
   <div className="flex flex-wrap justify-center gap-4 my-8 max-w-2xl mx-auto">
     <div className="flex items-center gap-2 bg-green-100 text-green-900 rounded-full px-4 py-2 text-xs font-medium shadow-sm">
-      <span role="img" aria-label="Leaf">🌱</span> Eco-Friendly
+      <span role="img" aria-label="Leaf">
+        🌱
+      </span>{' '}
+      Eco-Friendly
     </div>
     <div className="flex items-center gap-2 bg-yellow-100 text-yellow-900 rounded-full px-4 py-2 text-xs font-medium shadow-sm">
-      <span role="img" aria-label="Coin">💰</span> Get Paid for Trash
+      <span role="img" aria-label="Coin">
+        💰
+      </span>{' '}
+      Get Paid for Trash
     </div>
     <div className="flex items-center gap-2 bg-sky-100 text-sky-900 rounded-full px-4 py-2 text-xs font-medium shadow-sm">
-      <span role="img" aria-label="Lightning">⚡</span> Instant Pickup
+      <span role="img" aria-label="Lightning">
+        ⚡
+      </span>{' '}
+      Instant Pickup
     </div>
   </div>
 );

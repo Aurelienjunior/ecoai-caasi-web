@@ -1,3 +1,4 @@
+// contexts/AuthContext.tsx
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import React, { createContext, useContext, useEffect, useState } from 'react';
@@ -7,7 +8,7 @@ type Profile = {
   id: string;
   full_name?: string;
   avatar_url?: string | null;
-  [key: string]: unknown; // In case there are extra fields
+  [key: string]: unknown;
 };
 
 interface AuthContextType {
@@ -27,19 +28,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      setUser(firebaseUser);
       if (firebaseUser) {
-        // Attempt to fetch user profile from Firestore
-        const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
-        if (userDoc.exists()) {
-          setProfile({ id: userDoc.id, ...userDoc.data() } as Profile);
-        } else {
-          setProfile(null); // If no profile found
+        setUser(firebaseUser);
+        try {
+          const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
+          if (userDoc.exists()) {
+            setProfile({ id: userDoc.id, ...userDoc.data() } as Profile);
+          } else {
+            setProfile(null);
+          }
+        } catch (error) {
+          console.error('Error fetching user profile:', error);
+          setProfile(null);
         }
       } else {
+        setUser(null);
         setProfile(null);
       }
-      setLoading(false);
+
+      setLoading(false); // ✅ Now only runs after everything is finished
     });
 
     return () => unsubscribe();

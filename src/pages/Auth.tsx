@@ -61,7 +61,7 @@ const Auth = () => {
     try {
       await signInWithEmailAndPassword(auth, sanitizeInput(email), password);
       toast.success('Logged in successfully!');
-      navigate('/');
+      navigate('/home');
     } catch (error: unknown) {
       console.error('Login error:', error);
       if (error instanceof Error) {

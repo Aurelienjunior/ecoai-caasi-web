@@ -60,9 +60,10 @@ const LoginForm: React.FC<LoginFormProps> = ({
             />
             <button
               className=" text-3xl text-green-600 "
+              title={ispasswordVisible ? 'Hide password' : 'Show password'}
               onClick={handlePasswordVisibility}
             >
-              {ispasswordVisible ? <MdVisibilityOff /> : <MdVisibility />}
+              {ispasswordVisible ? <MdVisibility /> : <MdVisibilityOff />}
             </button>
           </div>
         </div>

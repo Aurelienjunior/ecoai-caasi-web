@@ -12,6 +12,7 @@ import Snap from './pages/Snap';
 import Payment from './pages/Payment';
 import Profile from './pages/Profile';
 import Home from './pages/Home';
+import ProtectedRoute from './components/auth/ProtectedRoute';
 
 const queryClient = new QueryClient();
 
@@ -26,12 +27,36 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
             {/* Removed /agent route */}
-            <Route path="/history" element={<History />} />
+            <Route
+              path="/history"
+              element={
+                // Protected Route
+                <ProtectedRoute>
+                  <History />
+                </ProtectedRoute>
+              }
+            />
             <Route path="/snap" element={<Snap />} />
             <Route path="/payment" element={<Payment />} />
-            <Route path="/profile" element={<Profile />} />
+            <Route
+              path="/profile"
+              element={
+                // Protected Route
+                <ProtectedRoute>
+                  <Profile />
+                </ProtectedRoute>
+              }
+            />
             {/* USER DASHBOARD ROUTE */}
-            <Route path="/home" element={<Home />} />
+            <Route
+              path="/home"
+              element={
+                // Protected Route
+                <ProtectedRoute>
+                  <Home />
+                </ProtectedRoute>
+              }
+            />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

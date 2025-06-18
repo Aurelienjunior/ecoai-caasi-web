@@ -78,9 +78,10 @@ const SignUpForm: React.FC<SignUpFormProps> = ({
           />
           <button
             className=" text-3xl text-green-600 "
+            title={ispasswordVisible ? 'Hide Password' : 'Show Password'}
             onClick={handlePasswordVisibility}
           >
-            {ispasswordVisible ? <MdVisibilityOff /> : <MdVisibility />}
+            {ispasswordVisible ? <MdVisibility /> : <MdVisibilityOff />}
           </button>
         </div>
       </div>

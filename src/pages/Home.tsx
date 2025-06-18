@@ -1,4 +1,3 @@
-
 import { useAuth } from '@/contexts/AuthContext';
 import LoggedInHome from '@/components/home/LoggedInHome';
 import { LoaderCircle } from 'lucide-react';

@@ -15,7 +15,7 @@ const Header = () => {
           className="text-lg text-green-600 hover:underline underline-offset-4 font-bold "
           href="/home"
         >
-          Dashboard
+          Login
         </a>
         <a
           className="text-sm font-medium hover:underline underline-offset-4"

@@ -36,8 +36,22 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
-            <Route path="/snap" element={<Snap />} />
-            <Route path="/payment" element={<Payment />} />
+            <Route
+              path="/snap"
+              element={
+                <ProtectedRoute>
+                  <Snap />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/payment"
+              element={
+                <ProtectedRoute>
+                  <Payment />
+                </ProtectedRoute>
+              }
+            />
             <Route
               path="/profile"
               element={

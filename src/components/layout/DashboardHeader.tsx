@@ -41,8 +41,8 @@ const DashboardHeader = () => {
           <LogoutButton />
           <button
             className="focus:outline-none"
-            onClick={() => navigate('/home')}
-            aria-label="Go to dashboard"
+            onClick={() => navigate('/profile')}
+            aria-label="Go to Profile"
             style={{
               background: 'none',
               border: 'none',

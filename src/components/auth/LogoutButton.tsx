@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { toast } from '@/components/ui/use-toast';
 import { signOut } from 'firebase/auth';
 import { auth } from '@/firebase'; // Make sure this points to your Firebase setup
+import Cookies from 'js-cookie';
 
 const LogoutButton = () => {
   const navigate = useNavigate();
@@ -15,6 +16,7 @@ const LogoutButton = () => {
     setLoading(true);
     try {
       await signOut(auth); // ✅ Firebase logout
+      Cookies.remove('userSession');
       toast({ title: 'Logged out' });
       navigate('/auth', { replace: true }); // Use replace so user can't go back
     } catch (error: any) {

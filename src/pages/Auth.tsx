@@ -18,6 +18,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import LoginForm from '@/components/auth/LoginForm';
 import SignUpForm from '@/components/auth/SignUpForm';
+import Cookies from 'js-cookie';
 
 const Auth = () => {
   const [email, setEmail] = useState('');
@@ -59,7 +60,29 @@ const Auth = () => {
     setLoading(true);
 
     try {
-      await signInWithEmailAndPassword(auth, sanitizeInput(email), password);
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        sanitizeInput(email),
+        password
+      );
+      const user = userCredential.user;
+
+      const idToken = await user.getIdToken();
+      console.log('User ID Token:', idToken);
+
+      // ✅ Combine all user data into one object
+      const userSession = {
+        token: idToken,
+        uid: user.uid,
+        email: user.email,
+        // name: user.displayName || '',
+      };
+
+      // ✅ Save to a single cookie (expires in 1 hour)
+      Cookies.set('userSession', JSON.stringify(userSession), {
+        expires: 1 / 24,
+      });
+
       toast.success('Logged in successfully!');
       navigate('/home');
     } catch (error: unknown) {

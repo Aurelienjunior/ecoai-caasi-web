@@ -1,3 +1,4 @@
+// components/forms/SchedulePickupForm.tsx
 
 import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
@@ -17,28 +18,38 @@ import { Textarea } from '@/components/ui/textarea';
 import { useAuth } from '@/contexts/AuthContext';
 
 const formSchema = z.object({
-  name: z.string()
+  name: z
+    .string()
     .min(2, { message: 'Name must be at least 2 characters.' })
     .max(50, { message: 'Name must not exceed 50 characters.' })
-    .regex(/^[a-zA-Z\s]+$/, { message: 'Name can only contain letters and spaces.' }),
-  phone: z.string()
+    .regex(/^[a-zA-Z\s]+$/, {
+      message: 'Name can only contain letters and spaces.',
+    }),
+  phone: z
+    .string()
     .min(9, { message: 'Please enter a valid phone number.' })
-    .regex(/^(\+237|237)?[0-9]{9}$/, { message: 'Please enter a valid Cameroon phone number.' }),
-  address: z.string()
+    .regex(/^(\+237|237)?[0-9]{9}$/, {
+      message: 'Please enter a valid Cameroon phone number.',
+    }),
+  address: z
+    .string()
     .min(10, { message: 'Address must be at least 10 characters.' })
     .max(500, { message: 'Address must not exceed 500 characters.' }),
-  notes: z.string()
+  notes: z
+    .string()
     .max(1000, { message: 'Notes must not exceed 1000 characters.' })
     .optional(),
 });
 
-type FormValues = z.infer<typeof formSchema>;
+export type FormValues = z.infer<typeof formSchema>;
 
 interface SchedulePickupFormProps {
   onSchedule: (values: FormValues) => void;
 }
 
-const SchedulePickupForm: React.FC<SchedulePickupFormProps> = ({ onSchedule }) => {
+const SchedulePickupForm: React.FC<SchedulePickupFormProps> = ({
+  onSchedule,
+}) => {
   const { user, profile } = useAuth();
 
   const form = useForm<FormValues>({
@@ -65,14 +76,13 @@ const SchedulePickupForm: React.FC<SchedulePickupFormProps> = ({ onSchedule }) =
   };
 
   function onSubmit(values: FormValues) {
-    // Sanitize all inputs before submission
     const sanitizedValues = {
       name: sanitizeInput(values.name),
       phone: sanitizeInput(values.phone),
       address: sanitizeInput(values.address),
       notes: values.notes ? sanitizeInput(values.notes) : '',
     };
-    
+
     onSchedule(sanitizedValues);
   }
 
@@ -86,7 +96,7 @@ const SchedulePickupForm: React.FC<SchedulePickupFormProps> = ({ onSchedule }) =
             <FormItem>
               <FormLabel>Full Name</FormLabel>
               <FormControl>
-                <Input placeholder="John Doe" {...field} />
+                <Input placeholder="Enter your full name" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -112,7 +122,10 @@ const SchedulePickupForm: React.FC<SchedulePickupFormProps> = ({ onSchedule }) =
             <FormItem>
               <FormLabel>Pickup Address</FormLabel>
               <FormControl>
-                <Textarea placeholder="Enter your full address, including any landmarks." {...field} />
+                <Textarea
+                  placeholder="Enter your full address, including any landmarks."
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>

@@ -27,8 +27,8 @@ const DashboardHeader = ({
 
   const navItems = [
     { name: 'Home', path: '/home', icon: Home },
-    { name: 'Picture', path: '/snap', icon: Camera },
-    { name: 'Payment', path: '/payment', icon: CreditCard },
+    { name: 'Schedule', path: '/snap', icon: Camera },
+    // { name: 'Payment', path: '/payment', icon: CreditCard },
     { name: 'History', path: '/history', icon: History },
   ];
 

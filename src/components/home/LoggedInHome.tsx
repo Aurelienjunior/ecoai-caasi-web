@@ -8,6 +8,7 @@ import OfferSummaryCard from './OfferSummaryCard';
 import { useAuth } from '@/contexts/AuthContext';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Cookies from 'js-cookie';
 
 const LoggedInHome = () => {
   const { user } = useAuth();
@@ -63,10 +64,12 @@ const LoggedInHome = () => {
           <Bot className="w-16 h-16" />
         </div>
 
-        {user && <OfferSummaryCard userId={user.uid} />}
+        {user && (
+          <OfferSummaryCard userId={user?.uid || Cookies.userSession?.uid} />
+        )}
 
         {/* Removed <PickupStatusCard /> */}
-        <DashboardSummaryCard />
+        <DashboardSummaryCard userId={user?.uid} />
 
         <div className="grid grid-cols-2 gap-4">
           <Link to="/snap" className="block h-full">

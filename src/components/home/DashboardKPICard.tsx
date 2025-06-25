@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 interface DashboardKPICardProps {
@@ -8,9 +7,18 @@ interface DashboardKPICardProps {
   iconBg?: string;
 }
 
-const DashboardKPICard: React.FC<DashboardKPICardProps> = ({ icon, label, value, iconBg }) => (
+const DashboardKPICard: React.FC<DashboardKPICardProps> = ({
+  icon,
+  label,
+  value,
+  iconBg,
+}) => (
   <div className="flex flex-1 items-center gap-4 bg-muted rounded-xl px-4 py-5 shadow-sm">
-    <span className={`rounded-full p-2 flex items-center justify-center ${iconBg ?? 'bg-gray-200'}`}>
+    <span
+      className={`rounded-full p-2 flex items-center justify-center ${
+        iconBg ?? 'bg-gray-200'
+      }`}
+    >
       {icon}
     </span>
     <div>

@@ -11,9 +11,7 @@ const SnapInitialView: React.FC<SnapInitialViewProps> = ({
 }) => {
   return (
     <div className="space-y-6 ">
-      <div className="bg-gray-900 rounded-2xl flex flex-col items-center justify-center text-white p-4 relative mx-auto
-      
-      w-1/2 max-sm:w-full md:h-[400px] h-[500px] ">
+      <div className="bg-gray-900 rounded-2xl flex flex-col items-center justify-center text-white p-4 relative mx-auto w-1/2 max-sm:w-full md:h-[400px] h-[500px] ">
         <p className="font-medium text-center">Point camera at your waste</p>
         <button
           onClick={onShutterClick}

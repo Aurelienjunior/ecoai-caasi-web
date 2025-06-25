@@ -16,7 +16,7 @@ const Home = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen bg-background">
+      <div className="  flex items-center justify-center h-screen bg-background">
         <LoaderCircle className="w-10 h-10 animate-spin text-primary" />
       </div>
     );
@@ -26,7 +26,11 @@ const Home = () => {
     return null; // Already redirected above if not logged in
   }
 
-  return <LoggedInHome />;
+  return (
+    <>
+      <LoggedInHome />
+    </>
+  );
 };
 
 export default Home;

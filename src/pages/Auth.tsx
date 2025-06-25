@@ -128,20 +128,16 @@ const Auth = () => {
     setLoading(true);
 
     try {
+      // Step 1: Create the user
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         sanitizeInput(email),
         password
       );
+      const user = userCredential.user;
 
-      await setDoc(doc(db, 'users', userCredential.user.uid), {
-        email: sanitizeInput(email),
-        full_name: sanitizeInput(firstName),
-        city: sanitizeInput(city),
-        area: sanitizeInput(area),
-        availability_range: sanitizeInput(availabilityRange),
-      });
-      console.log('User created successfully', {
+      // Step 2: Save extra profile info in Firestore
+      await setDoc(doc(db, 'users', user.uid), {
         email: sanitizeInput(email),
         full_name: sanitizeInput(firstName),
         city: sanitizeInput(city),
@@ -149,9 +145,22 @@ const Auth = () => {
         availability_range: sanitizeInput(availabilityRange),
       });
 
-      toast.success(
-        'Account created! Please check your email to verify your account.'
-      );
+      // Step 3: Auto-login (optional with Firebase, but repeat to get token)
+      const idToken = await user.getIdToken();
+
+      const userSession = {
+        token: idToken,
+        uid: user.uid,
+        email: user.email,
+      };
+
+      // Save to cookie (1 hour)
+      Cookies.set('userSession', JSON.stringify(userSession), {
+        expires: 1 / 24,
+      });
+
+      toast.success('Account created and logged in!');
+      navigate('/home');
     } catch (error: unknown) {
       console.error('Signup error:', error);
       if (error instanceof Error) {

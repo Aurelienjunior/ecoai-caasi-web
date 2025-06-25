@@ -99,21 +99,15 @@ const Snap = () => {
   };
 
   return (
-    <div className=" flex flex-col min-h-screen bg-gray-50 pb-24">
+    <div className="flex flex-col min-h-screen bg-gray-50 pb-24">
       <SnapHeader />
-      <main className=" flex-1 p-4 md:p-6">
+      <main className="flex-1 p-4 md:p-6">
         {!previewUrl ? (
-          <>
-            <SnapInitialView onShutterClick={handleShutterClick} />
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={handleFileChange}
-              className="hidden"
-              accept="image/*"
-              capture="environment"
-            />
-          </>
+          <SnapInitialView
+            onShutterClick={handleShutterClick}
+            fileInputRef={fileInputRef}
+            onFileChange={handleFileChange}
+          />
         ) : (
           <SnapAnalysisView
             previewUrl={previewUrl}

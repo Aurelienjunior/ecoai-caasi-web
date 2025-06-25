@@ -1,27 +1,21 @@
-import React, { useRef } from 'react';
+import React from 'react';
 import { CheckCircle } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { GrGallery } from 'react-icons/gr';
 
 interface SnapInitialViewProps {
   onShutterClick: () => void;
+  fileInputRef: React.RefObject<HTMLInputElement>;
+  onFileChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
 const SnapInitialView: React.FC<SnapInitialViewProps> = ({
   onShutterClick,
+  fileInputRef,
+  onFileChange,
 }) => {
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
-
   const handleGalleryClick = () => {
     fileInputRef.current?.click();
-  };
-
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      console.log('📸 Selected from gallery:', file);
-      // You can trigger an upload or pass it to your parent component
-    }
   };
 
   return (
@@ -32,16 +26,14 @@ const SnapInitialView: React.FC<SnapInitialViewProps> = ({
         </p>
 
         <div className="absolute bottom-0 border border-white p-2 flex justify-center items-center w-full">
-          {/* Hidden file input for gallery selection */}
           <input
             type="file"
             accept="image/*"
             ref={fileInputRef}
             className="hidden"
-            onChange={handleFileChange}
+            onChange={onFileChange}
           />
 
-          {/* Gallery Icon Button */}
           <button
             type="button"
             onClick={handleGalleryClick}
@@ -50,7 +42,6 @@ const SnapInitialView: React.FC<SnapInitialViewProps> = ({
             <GrGallery />
           </button>
 
-          {/* Camera Shutter Button */}
           <button
             onClick={onShutterClick}
             className="w-16 h-16 rounded-full bg-transparent border-[3px] border-green-400 flex items-center justify-center p-1"

@@ -6,6 +6,8 @@ import {
   signInWithEmailAndPassword,
 } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
+import Cookies from 'js-cookie';
+import { toast } from 'sonner';
 
 import {
   Card,
@@ -15,17 +17,14 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { toast } from 'sonner';
 import LoginForm from '@/components/auth/LoginForm';
 import SignUpForm from '@/components/auth/SignUpForm';
-import Cookies from 'js-cookie';
 
 const Auth = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Sign up fields
   const [firstName, setFirstName] = useState('');
   const [city, setCity] = useState('');
   const [area, setArea] = useState('');
@@ -33,110 +32,85 @@ const Auth = () => {
 
   const navigate = useNavigate();
 
-  const validateEmail = (email: string) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  };
+  // -------------------------------
+  // 🔐 Validation Helpers
+  // -------------------------------
+  const validateEmail = (email: string) =>
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
   const validatePassword = (password: string) => password.length >= 8;
-
   const validateName = (name: string) => name.length >= 2 && name.length <= 50;
-
   const sanitizeInput = (input: string) => input.trim().replace(/[<>]/g, '');
 
+  // -------------------------------
+  // ✅ Shared session handler
+  // -------------------------------
+  const saveSessionAndRedirect = async (user: any) => {
+    const idToken = await user.getIdToken();
+    const userSession = {
+      token: idToken,
+      uid: user.uid,
+      email: user.email,
+    };
+    Cookies.set('userSession', JSON.stringify(userSession), {
+      expires: 1 / 24, // 1 hour
+    });
+    navigate('/home');
+  };
+
+  // -------------------------------
+  // 🔓 Login
+  // -------------------------------
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!validateEmail(email)) {
-      toast.error('Please enter a valid email address');
-      return;
-    }
-
-    if (!validatePassword(password)) {
-      toast.error('Password must be at least 8 characters long');
-      return;
-    }
+    if (!validateEmail(email)) return toast.error('Enter a valid email');
+    if (!validatePassword(password))
+      return toast.error('Password must be at least 8 characters');
 
     setLoading(true);
-
     try {
       const userCredential = await signInWithEmailAndPassword(
         auth,
         sanitizeInput(email),
         password
       );
-      const user = userCredential.user;
-
-      const idToken = await user.getIdToken();
-      console.log('User ID Token:', idToken);
-
-      // ✅ Combine all user data into one object
-      const userSession = {
-        token: idToken,
-        uid: user.uid,
-        email: user.email,
-        // name: user.displayName || '',
-      };
-
-      // ✅ Save to a single cookie (expires in 1 hour)
-      Cookies.set('userSession', JSON.stringify(userSession), {
-        expires: 1 / 24,
-      });
-
+      await saveSessionAndRedirect(userCredential.user);
       toast.success('Logged in successfully!');
-      navigate('/home');
-    } catch (error: unknown) {
+    } catch (error: any) {
       console.error('Login error:', error);
-      if (error instanceof Error) {
-        toast.error(error.message);
-      } else {
-        toast.error('Failed to login');
-      }
+      toast.error(error?.message || 'Login failed');
     }
-
     setLoading(false);
   };
 
+  // -------------------------------
+  // 🆕 Sign Up
+  // -------------------------------
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!validateEmail(email)) {
-      toast.error('Please enter a valid email address');
-      return;
-    }
-
-    if (!validatePassword(password)) {
-      toast.error('Password must be at least 8 characters long');
-      return;
-    }
-
-    if (firstName && !validateName(firstName)) {
-      toast.error('First name must be between 2 and 50 characters');
-      return;
-    }
-
-    if (city && (city.length < 2 || city.length > 100)) {
-      toast.error('City must be between 2 and 100 characters');
-      return;
-    }
-
-    if (area && (area.length < 2 || area.length > 100)) {
-      toast.error('Area must be between 2 and 100 characters');
-      return;
-    }
+    if (!validateEmail(email)) return toast.error('Enter a valid email');
+    if (!validatePassword(password))
+      return toast.error('Password must be at least 8 characters');
+    if (firstName && !validateName(firstName))
+      return toast.error('First name must be 2-50 characters');
+    if (city && (city.length < 2 || city.length > 100))
+      return toast.error('City must be 2-100 characters');
+    if (area && (area.length < 2 || area.length > 100))
+      return toast.error('Area must be 2-100 characters');
 
     setLoading(true);
-
     try {
-      // Step 1: Create the user
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         sanitizeInput(email),
         password
       );
+
       const user = userCredential.user;
 
-      // Step 2: Save extra profile info in Firestore
+      // Save additional info to Firestore
       await setDoc(doc(db, 'users', user.uid), {
         email: sanitizeInput(email),
         full_name: sanitizeInput(firstName),
@@ -145,31 +119,12 @@ const Auth = () => {
         availability_range: sanitizeInput(availabilityRange),
       });
 
-      // Step 3: Auto-login (optional with Firebase, but repeat to get token)
-      const idToken = await user.getIdToken();
-
-      const userSession = {
-        token: idToken,
-        uid: user.uid,
-        email: user.email,
-      };
-
-      // Save to cookie (1 hour)
-      Cookies.set('userSession', JSON.stringify(userSession), {
-        expires: 1 / 24,
-      });
-
+      await saveSessionAndRedirect(user);
       toast.success('Account created and logged in!');
-      navigate('/home');
-    } catch (error: unknown) {
+    } catch (error: any) {
       console.error('Signup error:', error);
-      if (error instanceof Error) {
-        toast.error(error.message);
-      } else {
-        toast.error('Signup failed');
-      }
+      toast.error(error?.message || 'Signup failed');
     }
-
     setLoading(false);
   };
 
@@ -190,6 +145,8 @@ const Auth = () => {
             <TabsTrigger value="login">Login</TabsTrigger>
             <TabsTrigger value="signup">Sign Up</TabsTrigger>
           </TabsList>
+
+          {/* Login */}
           <TabsContent value="login">
             <Card>
               <CardHeader>
@@ -210,6 +167,8 @@ const Auth = () => {
               </CardContent>
             </Card>
           </TabsContent>
+
+          {/* Signup */}
           <TabsContent value="signup">
             <Card>
               <CardHeader>

@@ -28,8 +28,10 @@ const FeatureHighlights = () => (
 
 const LoggedOutHome = () => {
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-b from-secondary via-white to-green-50">
+    <div className=" relative flex flex-col min-h-screen bg-gradient-to-b from-secondary via-white to-green-50">
       <Header />
+
+      
       <main className="flex-1 pb-10">
         <Hero />
         <FeatureHighlights />

@@ -80,7 +80,7 @@ const Profile = () => {
   return (
     <div className="flex flex-col min-h-screen bg-gray-50 pb-24">
       <DashboardHeader />
-      <main className="flex-1 p-4 max-w-lg mx-auto">
+      <main className=" flex-1 flex justify-center items-center p-4 max-w-lg mx-auto">
         <Card>
           <CardHeader>
             <CardTitle>My Profile</CardTitle>

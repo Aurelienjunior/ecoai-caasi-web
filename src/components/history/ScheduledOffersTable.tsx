@@ -33,58 +33,73 @@ import {
 } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { z } from 'zod';
 
-interface Offer {
-  id: string;
-  address: string;
-  volume: string;
-  price: string;
-  status: string;
-  createdAt: any;
-  userId: string;
-}
+const ScheduledPickupSchema = z.object({
+  id: z.string(),
+  address: z.string(),
+  date: z.string(),
+  time: z.string(),
+  estimatedPrice: z.number().or(z.string().transform(Number)),
+  estimatedVolume: z.string(),
+  wasteType: z.string(),
+  status: z.string(),
+  createdAt: z.any(),
+  userId: z.string(),
+});
 
-const fetchUserOffers = async (userId: string): Promise<Offer[]> => {
+type ScheduledOffer = z.infer<typeof ScheduledPickupSchema>;
+
+const fetchScheduledOffers = async (userId: string): Promise<ScheduledOffer[]> => {
   const q = query(
-    collection(db, 'pickups'),
+    collection(db, 'scheduledPickups'),
     where('userId', '==', userId),
     orderBy('createdAt', 'desc')
   );
 
   const snapshot = await getDocs(q);
-  return snapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-  })) as Offer[];
+
+  const offers: ScheduledOffer[] = [];
+  snapshot.forEach((docSnap) => {
+    const data = { id: docSnap.id, ...docSnap.data() };
+    const parsed = ScheduledPickupSchema.safeParse(data);
+    if (parsed.success) {
+      offers.push(parsed.data);
+    } else {
+      console.warn('Invalid scheduled pickup skipped:', parsed.error.format());
+    }
+  });
+
+  return offers;
 };
 
-const OffersTable = () => {
+const ScheduledOffersTable = () => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [offerToDelete, setOfferToDelete] = useState<Offer | null>(null);
+  const [offerToDelete, setOfferToDelete] = useState<ScheduledOffer | null>(null);
   const [deleting, setDeleting] = useState(false);
   const queryClient = useQueryClient();
 
-  const { data: currentOffers, isLoading } = useQuery({
-    queryKey: ['user-offers', user?.uid],
-    queryFn: () => fetchUserOffers(user!.uid),
+  const { data: scheduledOffers, isLoading } = useQuery({
+    queryKey: ['user-scheduled-offers', user?.uid],
+    queryFn: () => fetchScheduledOffers(user!.uid),
     enabled: !!user?.uid,
   });
 
-  const handleDelete = async (offer: Offer) => {
+  const handleDelete = async (offer: ScheduledOffer) => {
     try {
       setDeleting(true);
-      await deleteDoc(doc(db, 'pickups', offer.id));
+      await deleteDoc(doc(db, 'scheduledPickups', offer.id));
       toast({
-        title: 'Offer retracted',
-        description: 'Your offer has been successfully deleted.',
+        title: 'Pickup deleted',
+        description: 'Your scheduled pickup was successfully deleted.',
       });
-      queryClient.invalidateQueries(['user-offers', user?.uid]);
+      queryClient.invalidateQueries(['user-scheduled-offers', user?.uid]);
     } catch (error) {
       console.error(error);
       toast({
         title: 'Error',
-        description: 'Failed to retract offer. Please try again.',
+        description: 'Could not delete the pickup. Please try again.',
         variant: 'destructive',
       });
     } finally {
@@ -98,15 +113,15 @@ const OffersTable = () => {
   if (isLoading) {
     return (
       <div className="flex items-center gap-2 text-muted-foreground">
-        <LoaderCircle className="animate-spin" /> Loading offers...
+        <LoaderCircle className="animate-spin" /> Loading scheduled pickups...
       </div>
     );
   }
 
-  if (!currentOffers || currentOffers.length === 0) {
+  if (!scheduledOffers || scheduledOffers.length === 0) {
     return (
       <p className="text-muted-foreground">
-        You haven't submitted any offers yet.
+        You haven't scheduled any pickups yet.
       </p>
     );
   }
@@ -117,25 +132,24 @@ const OffersTable = () => {
         <TableHeader>
           <TableRow>
             <TableHead>Date</TableHead>
+            <TableHead>Time</TableHead>
             <TableHead>Address</TableHead>
             <TableHead>Volume</TableHead>
+            <TableHead>Waste Type</TableHead>
             <TableHead>Price</TableHead>
             <TableHead>Status</TableHead>
-            <TableHead>Agent</TableHead>
             <TableHead>Action</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {currentOffers.map((offer) => (
+          {scheduledOffers.map((offer) => (
             <TableRow key={offer.id}>
-              <TableCell>
-                {offer.createdAt?.toDate
-                  ? offer.createdAt.toDate().toLocaleString()
-                  : 'N/A'}
-              </TableCell>
+              <TableCell>{offer.date}</TableCell>
+              <TableCell>{offer.time}</TableCell>
               <TableCell>{offer.address}</TableCell>
-              <TableCell>{offer.volume}</TableCell>
-              <TableCell>{offer.price}</TableCell>
+              <TableCell>{offer.estimatedVolume}</TableCell>
+              <TableCell>{offer.wasteType}</TableCell>
+              <TableCell>{Number(offer.estimatedPrice).toLocaleString()} XAF</TableCell>
               <TableCell>
                 <span
                   className={`px-2 py-1 rounded text-xs font-semibold ${
@@ -151,17 +165,6 @@ const OffersTable = () => {
               </TableCell>
               <TableCell>
                 {offer.status === 'pending' ? (
-                  <span className="text-xs text-muted-foreground">
-                    Waiting for agent
-                  </span>
-                ) : (
-                  <span className="flex items-center gap-1 text-green-700">
-                    <UserCheck size={16} /> Assigned
-                  </span>
-                )}
-              </TableCell>
-              <TableCell>
-                {offer.status === 'pending' ? (
                   <Dialog
                     open={offerToDelete?.id === offer.id}
                     onOpenChange={(open) => !open && setOfferToDelete(null)}
@@ -174,15 +177,15 @@ const OffersTable = () => {
                         onClick={() => setOfferToDelete(offer)}
                         disabled={deleting}
                       >
-                        <Trash2 size={16} /> Retract
+                        <Trash2 size={16} /> Cancel
                       </Button>
                     </DialogTrigger>
                     <DialogContent>
                       <DialogHeader>
-                        <DialogTitle>Retract Offer?</DialogTitle>
+                        <DialogTitle>Cancel Pickup?</DialogTitle>
                         <DialogDescription>
-                          Are you sure you want to retract this offer? This
-                          action cannot be undone.
+                          Are you sure you want to cancel this scheduled pickup?
+                          This action cannot be undone.
                         </DialogDescription>
                       </DialogHeader>
                       <DialogFooter>
@@ -196,15 +199,13 @@ const OffersTable = () => {
                           onClick={() => handleDelete(offer)}
                           disabled={deleting}
                         >
-                          {deleting ? 'Deleting...' : 'Yes, retract'}
+                          {deleting ? 'Deleting...' : 'Yes, cancel'}
                         </Button>
                       </DialogFooter>
                     </DialogContent>
                   </Dialog>
                 ) : (
-                  <span className="text-xs text-muted-foreground">
-                    No action
-                  </span>
+                  <span className="text-xs text-muted-foreground">No action</span>
                 )}
               </TableCell>
             </TableRow>
@@ -215,4 +216,4 @@ const OffersTable = () => {
   );
 };
 
-export default OffersTable;
+export default ScheduledOffersTable;

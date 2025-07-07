@@ -13,7 +13,7 @@ interface SignUpFormProps {
   password: string;
   setPassword: (password: string) => void;
   firstName: string;
-  setFirstName: (name: string) => void;
+  setFirstName: (name: string)    => void;
   city: string;
   setCity: (city: string) => void;
   area: string;

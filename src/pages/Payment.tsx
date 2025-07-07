@@ -13,39 +13,23 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { LoaderCircle } from 'lucide-react';
 
-const mockData = {
-  scheduleDetails: {
-    name: 'Jane Doe',
-    phone: '+237 670 00 00 00',
-    address: '123 Tech Avenue, Buea',
-    notes: 'Call on arrival.',
-  },
-  analysisResult: {
-    volume: 'Medium Bag',
-    price: '1500 XAF',
-    wasteType: 'Mixed Recyclables',
-    detectedItems: [],
-    error: null,
-  },
-};
-
 const Payment = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user } = useAuth();
+
   const [paymentPhone, setPaymentPhone] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { scheduleDetails, analysisResult } = location.state || mockData;
+  const {
+    scheduleDetails = {},
+    analysisResult = null,
+    pickupType = 'instant',
+  } = location.state || {};
 
-  const validatePhoneNumber = (phone: string) => {
-    const phoneRegex = /^[0-9]{9}$/;
-    return phoneRegex.test(phone);
-  };
+  const validatePhoneNumber = (phone: string) => /^[0-9]{9}$/.test(phone);
 
-  const sanitizeInput = (input: string) => {
-    return input.trim().replace(/[<>]/g, '');
-  };
+  const sanitizeInput = (input: string) => input.trim().replace(/[<>]/g, '');
 
   const handlePayment = async () => {
     if (!user) {
@@ -59,12 +43,12 @@ const Payment = () => {
     }
 
     if (
-      !scheduleDetails?.name ||
-      !scheduleDetails?.phone ||
-      !scheduleDetails?.address
+      !scheduleDetails.name ||
+      !scheduleDetails.phone ||
+      !scheduleDetails.address
     ) {
       toast.error(
-        'Missing required scheduling information. Please go back and complete the form.'
+        'Missing required information. Please go back and complete the form.'
       );
       return;
     }
@@ -76,8 +60,8 @@ const Payment = () => {
       console.log('Simulating payment with phone:', `+237${paymentPhone}`);
       await new Promise((res) => setTimeout(res, 2000));
 
-      // Save to Firestore
-      await addDoc(collection(db, 'pickups'), {
+      // Prepare data to save
+      const data: any = {
         userId: user.uid,
         name: sanitizeInput(scheduleDetails.name),
         phone: sanitizeInput(scheduleDetails.phone),
@@ -85,12 +69,28 @@ const Payment = () => {
         notes: scheduleDetails.notes
           ? sanitizeInput(scheduleDetails.notes)
           : '',
-        volume: sanitizeInput(analysisResult.volume),
-        price: sanitizeInput(analysisResult.price),
-        wasteType: sanitizeInput(analysisResult.wasteType),
         status: 'pending',
+        pickupType,
         createdAt: serverTimestamp(),
-      });
+      };
+
+      if (pickupType === 'instant') {
+        data.volume = sanitizeInput(analysisResult.volume);
+        data.price = sanitizeInput(analysisResult.price);
+        data.wasteType = sanitizeInput(analysisResult.wasteType);
+      }
+
+      if (pickupType === 'scheduled') {
+        data.estimatedVolume = scheduleDetails.estimatedVolume;
+        data.estimatedPrice = scheduleDetails.estimatedPrice;
+        data.wasteType = scheduleDetails.wasteType;
+        data.date = scheduleDetails.date;
+        data.time = scheduleDetails.time;
+      }
+
+      const targetCollection =
+        pickupType === 'scheduled' ? 'scheduledPickups' : 'pickups';
+      await addDoc(collection(db, targetCollection), data);
 
       toast.success('Payment successful and pickup scheduled!', {
         description:
@@ -101,7 +101,7 @@ const Payment = () => {
       navigate('/history');
     } catch (error) {
       console.error('Payment or Firestore error:', error);
-      toast.error('Payment processing failed. Please try again.');
+      toast.error('Payment failed. Please try again.');
     }
 
     setIsSubmitting(false);
@@ -119,7 +119,11 @@ const Payment = () => {
             </div>
             <div>
               <p className="text-sm text-gray-300 text-right">Total</p>
-              <p className="font-bold text-lg">{analysisResult.price}</p>
+              <p className="font-bold text-lg">
+                {pickupType === 'scheduled'
+                  ? `${scheduleDetails.estimatedPrice || 0} XAF`
+                  : analysisResult.price}
+              </p>
             </div>
           </div>
         </div>
@@ -169,7 +173,11 @@ const Payment = () => {
             {isSubmitting ? (
               <LoaderCircle className="animate-spin" />
             ) : (
-              `Pay ${analysisResult.price}`
+              `Pay ${
+                pickupType === 'scheduled'
+                  ? `${scheduleDetails.estimatedPrice || 0} XAF`
+                  : analysisResult.price
+              }`
             )}
           </Button>
           <p className="text-xs text-green-600 text-center">

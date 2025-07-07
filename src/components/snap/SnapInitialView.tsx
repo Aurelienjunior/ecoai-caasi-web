@@ -25,7 +25,7 @@ const SnapInitialView: React.FC<SnapInitialViewProps> = ({
           Point camera at your waste <br /> or <br /> Pick from gallery
         </p>
 
-        <div className="absolute bottom-0 border border-white p-2 flex justify-center items-center w-full">
+        <div className="absolute bottom-0 border-t border-white p-2 flex justify-center items-center w-full">
           <input
             type="file"
             accept="image/*"

@@ -13,6 +13,7 @@ import Payment from './pages/Payment';
 import Profile from './pages/Profile';
 import Home from './pages/Home';
 import ProtectedRoute from './components/auth/ProtectedRoute';
+import Schedule from './pages/Schedule';
 
 const queryClient = new QueryClient();
 
@@ -68,6 +69,14 @@ const App = () => (
                 // Protected Route
                 <ProtectedRoute>
                   <Home />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/schedule"
+              element={
+                <ProtectedRoute>
+                  <Schedule />
                 </ProtectedRoute>
               }
             />

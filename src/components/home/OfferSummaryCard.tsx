@@ -4,7 +4,6 @@ import {
   collection,
   query,
   where,
-  orderBy,
   getDocs,
   DocumentData,
 } from 'firebase/firestore';
@@ -15,42 +14,51 @@ interface OfferSummaryCardProps {
   userId: string;
 }
 
-// Fetch all pickups for a given user, ordered by createdAt descending
-const fetchAllPickups = async (userId: string): Promise<DocumentData[]> => {
-  try {
-    console.log('📡 Fetching all pickups for userId:', userId);
-    const pickupsRef = collection(db, 'pickups');
-    const q = query(
-      pickupsRef,
-      where('userId', '==', userId),
-      orderBy('createdAt', 'desc')
-    );
-
-    const snapshot = await getDocs(q);
-    console.log('📦 Docs found:', snapshot.size);
-
-    if (!snapshot.empty) {
-      const data = snapshot.docs.map((doc) => doc.data());
-      console.log('✅ Data:', data);
-      return data;
-    }
-
-    console.log('⚠️ No docs found.');
-    return [];
-  } catch (error) {
-    console.error('❌ Firestore fetch error:', error);
-    throw error;
-  }
+const fetchInstantPickups = async (userId: string): Promise<DocumentData[]> => {
+  const pickupsRef = collection(db, 'pickups');
+  const q = query(pickupsRef, where('userId', '==', userId));
+  const snapshot = await getDocs(q);
+  return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 };
 
+const fetchScheduledPickups = async (userId: string): Promise<DocumentData[]> => {
+  const scheduledRef = collection(db, 'scheduledPickups');
+  const q = query(scheduledRef, where('userId', '==', userId));
+  const snapshot = await getDocs(q);
+  return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+};
+
+const StatusBadge: React.FC<{ status?: string }> = ({ status }) => {
+  const baseClasses = "inline-block px-2 py-0.5 rounded-full text-xs font-semibold";
+
+  const statusMap = {
+    pending: "bg-yellow-100 text-yellow-800",
+    completed: "bg-green-100 text-green-800",
+    cancelled: "bg-red-100 text-red-800",
+  };
+
+  const classes = statusMap[status?.toLowerCase() || ""] || "bg-gray-100 text-gray-700";
+
+  return <span className={`${baseClasses} ${classes}`}>{status || "Unknown"}</span>;
+};
+
+const InfoRow: React.FC<{ label: string; value?: string | number }> = ({ label, value }) => (
+  <div className="flex justify-between text-sm text-gray-700">
+    <span className="font-medium">{label}</span>
+    <span>{value || "N/A"}</span>
+  </div>
+);
+
 const OfferSummaryCard: React.FC<OfferSummaryCardProps> = ({ userId }) => {
-  const {
-    data: pickups,
-    isLoading,
-    error,
-  } = useQuery({
-    queryKey: ['all-pickpus', userId],
-    queryFn: () => fetchAllPickups(userId),
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['all-pickups', userId],
+    queryFn: async () => {
+      const [instantPickups, scheduledPickups] = await Promise.all([
+        fetchInstantPickups(userId),
+        fetchScheduledPickups(userId),
+      ]);
+      return { instantPickups, scheduledPickups };
+    },
     enabled: !!userId,
   });
 
@@ -61,7 +69,7 @@ const OfferSummaryCard: React.FC<OfferSummaryCardProps> = ({ userId }) => {
           <CardTitle>My Pickups</CardTitle>
         </CardHeader>
         <CardContent>
-          <p>Loading Pickups...</p>
+          <p>Loading pickups...</p>
         </CardContent>
       </Card>
     );
@@ -74,69 +82,88 @@ const OfferSummaryCard: React.FC<OfferSummaryCardProps> = ({ userId }) => {
           <CardTitle>My Pickups</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-red-600">
-            Failed to load Pickups. Try again later.
-          </p>
+          <p className="text-red-600">Failed to load pickups. Try again later.</p>
         </CardContent>
       </Card>
     );
   }
 
-  if (!pickups || pickups.length === 0) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>My Pickups</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p>No pickups submitted yet.</p>
-        </CardContent>
-      </Card>
-    );
-  }
+  if (!data) return null;
+
+  const { instantPickups, scheduledPickups } = data;
 
   return (
-    <div className=" w-full flex flex-col gap-4 ">
-      <h1 className=" text-2xl font-bold ">My Pickups</h1>
-      <div className=" w-full flex md:flex-row flex-wrap gap-4 ">
-        {pickups.map((offer, idx) => (
-          <Card key={idx} className=" max-sm:w-full mb-4">
-            <CardHeader>
-              <CardTitle>Pickup: {idx + 1}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-col gap-2">
-                <div>
-                  <span className="font-bold">Address: </span>
-                  <span>{offer.address || 'N/A'}</span>
-                </div>
-                <div>
-                  <span className="font-bold">Price: </span>
-                  <span>{offer.price || 'N/A'}</span>
-                </div>
-                <div>
-                  <span className="font-bold">Volume: </span>
-                  <span>{offer.volume || 'N/A'}</span>
-                </div>
-                <div>
-                  <span className="font-bold">Status: </span>
-                  <span
-                    className={`px-2 py-1 rounded ${
-                      offer.status === 'pending'
-                        ? 'bg-yellow-100 text-yellow-700'
-                        : offer.status === 'completed'
-                        ? 'bg-green-100 text-green-700'
-                        : 'bg-gray-100 text-gray-700'
-                    }`}
-                  >
-                    {offer.status || 'Unknown'}
-                  </span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+    <div className="w-full flex flex-col gap-6">
+      <h1 className="text-2xl font-bold mb-4">My Pickups</h1>
+
+      {/* Instant Pickups */}
+      <section>
+        <h2 className="text-lg font-semibold mb-3 border-l-4 border-green-500 pl-2 text-green-700">
+          Instant Pickups (Book Now)
+        </h2>
+        {instantPickups.length === 0 ? (
+          <p className="text-gray-500">No instant pickups found.</p>
+        ) : (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {instantPickups.map((pickup) => (
+              <Card
+                key={pickup.id}
+                className="p-4 shadow-md rounded-lg hover:shadow-xl transition-shadow cursor-default"
+              >
+                <CardContent className="space-y-2 p-0">
+                  <InfoRow label="Address" value={pickup.address} />
+                  <InfoRow label="Price" value={`${pickup.price} XAF`} />
+                  <InfoRow label="Volume" value={pickup.volume} />
+                  <div className="flex justify-between items-center">
+                    <span className="font-medium text-sm">Status</span>
+                    <StatusBadge status={pickup.status} />
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* Scheduled Pickups */}
+      <section>
+        <h2 className="text-lg font-semibold mb-3 border-l-4 border-blue-500 pl-2 text-blue-700">
+          Scheduled Pickups (Book Later)
+        </h2>
+        {scheduledPickups.length === 0 ? (
+          <p className="text-gray-500">No scheduled pickups found.</p>
+        ) : (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {scheduledPickups.map((pickup) => (
+              <Card
+                key={pickup.id}
+                className="p-4 shadow-md rounded-lg hover:shadow-xl transition-shadow cursor-default"
+              >
+                <CardContent className="space-y-2 p-0">
+                  <InfoRow label="Address" value={pickup.address} />
+                  <InfoRow label="Est. Volume" value={pickup.estimatedVolume} />
+                  <InfoRow
+                    label="Schedule"
+                    value={`${pickup.date || "N/A"} ${pickup.time || ""}`}
+                  />
+                  <InfoRow
+                    label="Est. Price"
+                    value={
+                      pickup.estimatedPrice
+                        ? `${pickup.estimatedPrice.toLocaleString()} XAF`
+                        : "N/A"
+                    }
+                  />
+                  <div className="flex justify-between items-center">
+                    <span className="font-medium text-sm">Status</span>
+                    <StatusBadge status={pickup.status} />
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+      </section>
     </div>
   );
 };

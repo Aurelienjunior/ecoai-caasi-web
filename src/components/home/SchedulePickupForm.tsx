@@ -44,7 +44,7 @@ const formSchema = z.object({
 export type FormValues = z.infer<typeof formSchema>;
 
 interface SchedulePickupFormProps {
-  onSchedule: (values: FormValues) => void;
+  onSchedule: (values: FormValues & { pickupType: 'instant' }) => void;
 }
 
 const SchedulePickupForm: React.FC<SchedulePickupFormProps> = ({
@@ -81,6 +81,7 @@ const SchedulePickupForm: React.FC<SchedulePickupFormProps> = ({
       phone: sanitizeInput(values.phone),
       address: sanitizeInput(values.address),
       notes: values.notes ? sanitizeInput(values.notes) : '',
+      pickupType: 'instant' as const,
     };
 
     onSchedule(sanitizedValues);

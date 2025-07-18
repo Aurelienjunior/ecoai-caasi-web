@@ -47,6 +47,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       }
 
       setLoading(false); // ✅ Now only runs after everything is finished
+      console.log('📡 onAuthStateChanged fired:', firebaseUser);
     });
 
     return () => unsubscribe();
